@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0b0b0c"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3c58f"/>
+      <stop offset="1" stop-color="#e9a35b"/>
+    </linearGradient>
+  </defs>
+  <!-- roof -->
+  <path d="M96 252 L256 112 L416 252" fill="none" stroke="url(#g)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- chimney -->
+  <rect x="330" y="132" width="34" height="70" rx="6" fill="#e9a35b"/>
+  <!-- body -->
+  <path d="M144 232 V384 a20 20 0 0 0 20 20 H348 a20 20 0 0 0 20 -20 V232" fill="none" stroke="url(#g)" stroke-width="34" stroke-linejoin="round"/>
+  <!-- door -->
+  <path d="M226 404 V330 a30 30 0 0 1 60 0 V404 Z" fill="#e9a35b"/>
+</svg>

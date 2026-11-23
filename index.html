@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nest">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Nest: house setup, move-in planning and home upkeep.">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Nest</title>
+<style>
+:root{
+  --bg:#0b0b0c; --card:#161618; --card2:#1e1e21; --line:#2a2a2e;
+  --tx:#f2f2f3; --mut:#9a9aa2; --acc:#e9a35b; --acc2:#f3c58f;
+  --ok:#5cc489; --warn:#f0b94a; --bad:#ef6b6b; --blue:#6aa8ff;
+  --r:16px;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
+  --gut-l:max(16px,var(--safe-l)); --gut-r:max(16px,var(--safe-r));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+body.locked{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation}
+header{position:sticky;top:0;z-index:5;background:rgba(11,11,12,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(var(--safe-t) + 14px) var(--gut-r) 12px var(--gut-l);display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:22px;letter-spacing:-.3px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .back{background:none;border:0;color:var(--acc);font-size:15px;padding:6px 0;cursor:pointer}
+#sync{font-size:11px;color:var(--mut);background:none;border:0;padding:6px 0;cursor:pointer;white-space:nowrap}
+#sync.err{color:var(--bad)}
+main{padding:16px var(--gut-r) calc(104px + var(--safe-b)) var(--gut-l);max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(140deg,#2a1d10,#161618 60%);border-color:#3a2a18}
+.big{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1}
+.mut{color:var(--mut)} .sm{font-size:12.5px} .b{font-weight:600}
+.row{display:flex;align-items:center;gap:10px}
+.wrap{flex-wrap:wrap}
+.sp{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 .card{margin-bottom:0}
+.stat .v{font-size:20px;font-weight:700;margin-top:2px}
+.bar{height:10px;background:var(--card2);border-radius:99px;overflow:hidden;display:flex;margin:10px 0 6px}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12px;color:var(--mut)}
+.legend b{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:22px 4px 10px;font-weight:600;display:flex;align-items:center}
+h2 .sp{flex:1}
+h2 button{background:none;border:0;color:var(--acc);font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer;padding:4px 0}
+.list{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.li:last-child{border-bottom:0}
+.li:active{background:var(--card2)}
+.li .main{flex:1;min-width:0}
+.li .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .end{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.ic{width:36px;height:36px;border-radius:10px;background:var(--card2);display:grid;place-items:center;font-size:18px;flex:none}
+.pill{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:99px;border:0;cursor:pointer;white-space:nowrap}
+.s-idea{background:#2a2a2e;color:#c9c9cf}
+.s-shortlist{background:#1d2a40;color:var(--blue)}
+.s-ordered{background:#3a2c12;color:var(--warn)}
+.s-delivered{background:#163223;color:var(--ok)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.p-must{background:var(--bad)} .p-soon{background:var(--warn)} .p-later{background:#6b6b73}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.bd-bad{background:#3a1717;color:var(--bad)} .bd-warn{background:#3a2c12;color:var(--warn)} .bd-ok{background:#163223;color:var(--ok)} .bd-mut{background:#2a2a2e;color:var(--mut)}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.room{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer;text-align:left;width:100%}
+.room:active{transform:scale(.98)}
+.room .e{font-size:26px}
+.room .n{font-weight:600;margin:8px 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room.add{display:grid;place-items:center;border-style:dashed;color:var(--mut);min-height:120px}
+.mini{height:5px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:10px}
+.mini i{display:block;height:100%;background:var(--acc)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;margin:0 calc(-1 * var(--gut-r)) 0 0}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 13px;font-size:13px;white-space:nowrap;cursor:pointer;flex:none}
+.chip.on{background:var(--acc);color:#1a1208;border-color:var(--acc);font-weight:600}
+.btn{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;font-weight:600;text-align:center;text-decoration:none;color:var(--tx)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#1a1208}
+.btn.dan{color:var(--bad)}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.5}
+.empty{text-align:center;color:var(--mut);padding:28px 10px}
+.welcome h3{margin:0 0 6px;font-size:18px}
+.welcome .acts{margin-top:14px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(18,18,20,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;padding:6px max(6px,var(--safe-r)) calc(6px + var(--safe-b)) max(6px,var(--safe-l))}
+nav button{flex:1;background:none;border:0;color:var(--mut);padding:6px 0;font-size:10.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav button span{font-size:20px;filter:grayscale(1);opacity:.7}
+nav button.on{color:var(--acc)} nav button.on span{filter:none;opacity:1}
+nav button em{position:absolute;top:2px;left:calc(50% + 8px);min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--bad);color:#fff;font-style:normal;font-size:10px;font-weight:700;line-height:16px}
+.fab{position:fixed;right:max(18px,calc(var(--safe-r) + 12px));bottom:calc(80px + var(--safe-b));z-index:6;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#1a1208;border:0;font-size:28px;line-height:1;box-shadow:0 8px 24px rgba(233,163,91,.35);cursor:pointer}
+/* Bottom sheet: the scrim tracks the *visual* viewport so the sheet sits above the iOS keyboard */
+.scrim{position:fixed;left:0;right:0;top:var(--vvt,0px);height:var(--vvh,100%);background:rgba(0,0,0,.55);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.scrim.on{display:flex}
+.sheet{background:#141416;border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;width:100%;max-width:620px;max-height:calc(100% - var(--safe-t) - 12px);overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:10px max(18px,var(--safe-r)) calc(18px + var(--safe-b)) max(18px,var(--safe-l));animation:up .22s ease}
+.kb .sheet{padding-bottom:18px}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:38px;height:5px;border-radius:9px;background:#3a3a40;margin:2px auto 12px}
+.sheet h3{margin:0 0 14px;font-size:18px}
+.f{margin-bottom:12px;min-width:0}
+.f label{display:block;font-size:12px;color:var(--mut);margin:0 0 5px 2px}
+/* 16px+ text stops iOS Safari zooming in on focus */
+.f input,.f select,.f textarea,.setf{width:100%;min-height:46px;display:block;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;outline:none;-webkit-appearance:none;appearance:none;font-size:16px}
+.f select{padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239a9aa2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+.f input[type=date]{text-align:left}
+.f input[type=date]::-webkit-date-and-time-value{text-align:left}
+.f input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--acc)}
+.f textarea{min-height:76px;resize:vertical}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acts{display:flex;gap:10px;margin-top:6px}
+.acts .btn{flex:1}
+.hint{font-size:12px;color:var(--mut);margin:-4px 2px 12px}
+.toast{position:fixed;left:50%;bottom:calc(146px + var(--safe-b));transform:translate(-50%,8px);max-width:calc(100% - 32px);width:max-content;display:flex;align-items:center;gap:12px;background:#26262a;border:1px solid var(--line);padding:10px 14px;border-radius:12px;z-index:30;font-size:13.5px;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast.err{background:#2d1515;border-color:#5a2424}
+.toast button{background:none;border:0;color:var(--acc);font-weight:700;padding:4px 2px;cursor:pointer;flex:none}
+a{color:var(--acc)}
+code{font-size:12px;background:var(--card2);padding:1px 5px;border-radius:5px}
+@media (min-width:700px){.grid2.w4{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:360px){.f2{grid-template-columns:1fr}.big{font-size:38px}}
+</style>
+</head>
+<body>
+<header>
+  <button class="back" id="back" hidden data-act="back">‹ Rooms</button>
+  <h1 id="title">Nest</h1>
+  <button id="sync" data-act="syncTap" aria-label="Sync status"></button>
+</header>
+<main id="main"></main>
+<button class="fab" id="fab" data-act="fab" aria-label="Add">+</button>
+<nav id="nav">
+  <button data-tab="home"><span>🏠</span>Home</button>
+  <button data-tab="rooms"><span>🛋️</span>Rooms</button>
+  <button data-tab="items"><span>🛒</span>Shopping</button>
+  <button data-tab="upkeep"><span>🔧</span>Upkeep</button>
+  <button data-tab="settings"><span>⚙️</span>Settings</button>
+</nav>
+<div class="scrim" id="scrim"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastBtn" hidden></button></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+/* =====================================================================
+   Nest: house setup before move-in, home upkeep after.
+   Offline-first: everything lives in localStorage. Optional sync with a
+   Google Sheet through an Apps Script web app (Code.gs).
+
+   Sync model: last-write-wins per record. Every room/item/task/bill has
+   `u` (ms timestamp of its last edit). Deletions leave a tombstone in
+   `deleted` {id: ms}. Settings carry `settingsAt`. Two devices editing
+   different records never overwrite each other.
+   ===================================================================== */
+
+const KEY = 'nest.v1';            // app state (kept from the prototype so old data loads)
+const DEV_KEY = 'nest.device';    // per-device: sync URL, last sync time
+const SNAP_KEY = 'nest.snapshot'; // copy taken before import / sample / clear
+const COLLS = ['rooms', 'items', 'tasks', 'bills'];
+const TOMBSTONE_DAYS = 400;
+
+const STATUSES = [
+  {k:'idea',      l:'Idea'},
+  {k:'shortlist', l:'Shortlisted'},
+  {k:'ordered',   l:'Ordered'},
+  {k:'delivered', l:'Delivered'}
+];
+const PRIORITIES = [
+  {k:'must',  l:'Must: before move-in'},
+  {k:'soon',  l:'Soon: first 3 months'},
+  {k:'later', l:'Later: nice to have'}
+];
+const CATEGORIES = ['Furniture','Appliance','Fixture / Reno','Electronics','Decor','Essentials'];
+const FREQS = [{k:'monthly',l:'Monthly'},{k:'quarterly',l:'Quarterly'},{k:'yearly',l:'Yearly'}];
+
+/* ---------- small helpers ---------- */
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+function uid(){
+  const a = new Uint8Array(8);
+  (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => a[i] = Math.random() * 256);
+  return Array.from(a, b => (b % 36).toString(36)).join('');
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => (v === '' || v == null || isNaN(Number(v))) ? 0 : Number(v);
+const rm = n => 'RM ' + Math.round(Number(n) || 0).toLocaleString('en-MY');
+const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
+
+/* Dates are plain 'yyyy-mm-dd' strings in *local* time. Never go through
+   toISOString(): that is UTC and shifts dates by a day in Malaysia (UTC+8). */
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const isDate = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
+const parseD = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+const today = () => iso(new Date());
+const daysBetween = (a, b) => Math.round((parseD(b) - parseD(a)) / 864e5);
+const fmtDate = d => isDate(d) ? parseD(d).toLocaleDateString('en-MY', {day:'numeric', month:'short', year:'numeric'}) : '—';
+function addMonths(s, m){
+  const d = parseD(s), day = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + Number(m || 0));
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last)); // 31 Jan + 1 month = 28/29 Feb
+  return iso(d);
+}
+
+/* ---------- state ---------- */
+function blank(){
+  return { version:2, updatedAt:0, settingsAt:0,
+    settings:{ household:'Our home', moveIn:'2028-10-01', budget:0 },
+    rooms:[], items:[], tasks:[], bills:[], deleted:{} };
+}
+
+function normalize(s){
+  s = (s && typeof s === 'object') ? s : {};
+  const b = blank();
+  const out = { version:2, updatedAt:num(s.updatedAt), settingsAt:num(s.settingsAt) };
+  out.settings = Object.assign({}, b.settings, s.settings || {});
+  out.settings.budget = num(out.settings.budget);
+  if (!isDate(out.settings.moveIn)) out.settings.moveIn = b.settings.moveIn;
+  delete out.settings.syncUrl; // device-only, lives in DEV_KEY
+  const str = v => v == null ? '' : String(v);
+  out.rooms = (s.rooms || []).filter(r => r && r.id).map(r => ({ id:str(r.id), name:str(r.name), icon:str(r.icon) || '🚪', u:num(r.u) }));
+  out.items = (s.items || []).filter(i => i && i.id).map(i => ({
+    id:str(i.id), roomId:str(i.roomId), name:str(i.name), category:str(i.category) || 'Furniture',
+    priority:['must','soon','later'].includes(i.priority) ? i.priority : 'soon',
+    status:STATUSES.some(x => x.k === i.status) ? i.status : 'idea',
+    est:num(i.est), actual:(i.actual === '' || i.actual == null) ? '' : num(i.actual),
+    shop:str(i.shop), link:str(i.link), date:isDate(i.date) ? i.date : '', warranty:isDate(i.warranty) ? i.warranty : '',
+    notes:str(i.notes), u:num(i.u) }));
+  out.tasks = (s.tasks || []).filter(t => t && t.id).map(t => ({
+    id:str(t.id), name:str(t.name), roomId:str(t.roomId), interval:Math.max(1, num(t.interval) || 1),
+    lastDone:isDate(t.lastDone) ? t.lastDone : '', notes:str(t.notes), u:num(t.u) }));
+  out.bills = (s.bills || []).filter(x => x && x.id).map(x => ({
+    id:str(x.id), name:str(x.name), amount:num(x.amount),
+    freq:FREQS.some(f => f.k === x.freq) ? x.freq : 'monthly', notes:str(x.notes), u:num(x.u) }));
+  out.deleted = {};
+  Object.entries(s.deleted || {}).forEach(([id, t]) => { if (num(t)) out.deleted[id] = num(t); });
+  return out;
+}
+
+/* Per-record last-write-wins merge. `b` wins ties. Same logic lives in Code.gs. */
+function mergeStates(a, b){
+  const out = { version:2, updatedAt:Math.max(num(a.updatedAt), num(b.updatedAt)), deleted:{} };
+  const cutoff = now() - TOMBSTONE_DAYS * 864e5;
+  [a.deleted || {}, b.deleted || {}].forEach(src => Object.entries(src).forEach(([id, t]) => {
+    t = num(t); if (t > cutoff && !(out.deleted[id] >= t)) out.deleted[id] = t;
+  }));
+  COLLS.forEach(c => {
+    const m = new Map();
+    (a[c] || []).forEach(r => m.set(r.id, r));
+    (b[c] || []).forEach(r => { const x = m.get(r.id); if (!x || num(r.u) >= num(x.u)) m.set(r.id, r); });
+    out[c] = [...m.values()].filter(r => !(out.deleted[r.id] >= num(r.u)));
+  });
+  const bWins = num(b.settingsAt) >= num(a.settingsAt);
+  out.settings = Object.assign({}, bWins ? b.settings : a.settings);
+  out.settingsAt = Math.max(num(a.settingsAt), num(b.settingsAt));
+  return out;
+}
+
+/* A stable fingerprint, used to tell whether a merge changed anything. */
+function sig(s){
+  const sorted = arr => (arr || []).slice().sort((x, y) => x.id < y.id ? -1 : x.id > y.id ? 1 : 0);
+  const o = { settings:s.settings, settingsAt:s.settingsAt, deleted:Object.keys(s.deleted || {}).sort().map(k => k + ':' + s.deleted[k]) };
+  COLLS.forEach(c => o[c] = sorted(s[c]));
+  return JSON.stringify(o);
+}
+
+function readJSON(key){ try { return JSON.parse(localStorage.getItem(key)); } catch(e){ return null; } }
+function writeJSON(key, val){
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch(e){ toast('Could not save on this device (storage full?). Export a backup now.', {error:true}); return false; }
+}
+
+let S, D;
+(function boot(){
+  const raw = readJSON(KEY);
+  D = Object.assign({ syncUrl:'', lastSync:0 }, readJSON(DEV_KEY) || {});
+  if (raw && raw.settings && raw.settings.syncUrl && !D.syncUrl) D.syncUrl = raw.settings.syncUrl; // migrate prototype
+  S = normalize(raw || blank());
+  writeJSON(DEV_KEY, D);
+})();
+
+let view = 'home', curRoom = null, fStatus = 'all', fPrio = 'all';
+
+function persist(){ return writeJSON(KEY, S); }
+function saveDevice(){ writeJSON(DEV_KEY, D); }
+/* Every user change goes through save(): local first, then a debounced sync. */
+function save(){ S.updatedAt = now(); persist(); queueSync(); render(); }
+
+const stamp = r => { r.u = now(); return r; };
+function removeRec(coll, id){ S[coll] = S[coll].filter(x => x.id !== id); S.deleted[id] = now(); }
+function setSetting(k, v){ S.settings[k] = v; S.settingsAt = now(); }
+
+function snapshot(reason){ writeJSON(SNAP_KEY, { at:now(), reason, state:S }); }
+/* Replace all data on purpose (import / sample / clear / restore).
+   Tombstones every current record and stamps the new ones so they win on every device. */
+function replaceAll(next, reason, keepSettings){
+  snapshot(reason);
+  const t = now();
+  COLLS.forEach(c => S[c].forEach(r => { S.deleted[r.id] = t; }));
+  const n = normalize(next);
+  COLLS.forEach(c => { n[c].forEach(r => { r.u = t + 1; delete S.deleted[r.id]; }); S[c] = n[c]; });
+  if (!keepSettings) { S.settings = n.settings; S.settingsAt = t; }
+  save();
+}
+
+/* ---------- sample data (Settings → Load sample) ---------- */
+function sample(){
+  const R = (name, icon) => ({id:uid(), name, icon});
+  const rooms = [R('Living room','🛋️'),R('Kitchen','🍳'),R('Master bedroom','🛏️'),R('Bedroom 2','🖥️'),R('Bathrooms','🚿'),R('Laundry / Yard','🧺')];
+  const [liv,kit,mb,b2,bath,laun] = rooms.map(r=>r.id);
+  const I = (roomId,name,category,priority,status,est,extra={}) => ({id:uid(),roomId,name,category,priority,status,est,actual:'',shop:'',link:'',date:'',warranty:'',notes:'',...extra});
+  return {
+    settings:{ household:S.settings.household, moveIn:S.settings.moveIn, budget:S.settings.budget || 35000 },
+    rooms,
+    items:[
+      I(liv,'Sofa (3-seater)','Furniture','must','shortlist',2800,{shop:'IKEA Tebrau'}),
+      I(liv,'TV console','Furniture','soon','idea',900),
+      I(liv,'Aircond 1.5HP inverter','Appliance','must','idea',2200),
+      I(liv,'Curtains (full set)','Fixture / Reno','must','idea',1800),
+      I(kit,'Fridge 2-door inverter','Appliance','must','shortlist',2400),
+      I(kit,'Water filter','Appliance','must','idea',1200),
+      I(kit,'Cooker hood + hob','Appliance','must','idea',1500),
+      I(kit,'Dining table set (4 pax)','Furniture','soon','idea',1300),
+      I(mb,'King bed frame','Furniture','must','idea',1600),
+      I(mb,'King mattress','Furniture','must','shortlist',2500),
+      I(mb,'Aircond 1HP inverter','Appliance','must','idea',1800),
+      I(mb,'Wardrobe','Furniture','must','idea',2000),
+      I(b2,'Gaming / work desk','Furniture','soon','idea',800),
+      I(b2,'Aircond 1HP inverter','Appliance','later','idea',1800),
+      I(bath,'Water heaters ×2','Appliance','must','idea',900),
+      I(laun,'Washer-dryer','Appliance','must','idea',2600),
+      I(laun,'Drying rack','Essentials','soon','idea',150)
+    ],
+    tasks:[
+      {id:uid(),name:'Aircond servicing (all units)',roomId:'',interval:6,lastDone:'',notes:'Chemical wash yearly'},
+      {id:uid(),name:'Water filter cartridge',roomId:kit,interval:12,lastDone:'',notes:''},
+      {id:uid(),name:'Water heater check',roomId:bath,interval:12,lastDone:'',notes:''},
+      {id:uid(),name:'Washing machine drum clean',roomId:laun,interval:1,lastDone:'',notes:''}
+    ],
+    bills:[
+      {id:uid(),name:'TNB electricity',amount:180,freq:'monthly',notes:''},
+      {id:uid(),name:'Water',amount:30,freq:'monthly',notes:''},
+      {id:uid(),name:'Internet (fibre)',amount:129,freq:'monthly',notes:''},
+      {id:uid(),name:'Maintenance fee + sinking fund',amount:250,freq:'monthly',notes:'If strata'},
+      {id:uid(),name:'Cukai pintu',amount:300,freq:'yearly',notes:'Twice a year in some councils'},
+      {id:uid(),name:'Cukai tanah',amount:60,freq:'yearly',notes:''},
+      {id:uid(),name:'Home insurance (fire / houseowner)',amount:350,freq:'yearly',notes:''}
+    ]
+  };
+}
+
+/* ---------- derived numbers ---------- */
+const roomOf = id => S.rooms.find(r => r.id === id);
+const roomName = id => (roomOf(id) || {}).name || 'Whole house';
+const roomIcon = id => (roomOf(id) || {}).icon || '🏠';
+const cost = i => i.actual !== '' && i.actual != null ? num(i.actual) : num(i.est);
+function totals(items = S.items){
+  const spent = items.filter(i=>i.status==='delivered').reduce((a,i)=>a+cost(i),0);
+  const committed = items.filter(i=>i.status==='ordered').reduce((a,i)=>a+cost(i),0);
+  const planned = items.filter(i=>i.status==='idea'||i.status==='shortlist').reduce((a,i)=>a+num(i.est),0);
+  return {spent, committed, planned, total:spent+committed+planned};
+}
+const nextDue = t => t.lastDone ? addMonths(t.lastDone, t.interval) : '';
+const overdueCount = () => S.tasks.filter(t => t.lastDone && nextDue(t) < today()).length;
+function dueBadge(t){
+  const nd = nextDue(t);
+  if (!nd) return '<span class="badge bd-mut">Not started</span>';
+  const d = daysBetween(today(), nd);
+  if (d < 0) return `<span class="badge bd-bad">${-d}d overdue</span>`;
+  if (d === 0) return `<span class="badge bd-warn">Due today</span>`;
+  if (d <= 14) return `<span class="badge bd-warn">Due in ${d}d</span>`;
+  return `<span class="badge bd-ok">${fmtDate(nd)}</span>`;
+}
+const monthly = b => b.freq==='monthly' ? b.amount : b.freq==='quarterly' ? b.amount/3 : b.amount/12;
+const isEmpty = () => !S.rooms.length && !S.items.length && !S.tasks.length && !S.bills.length;
+
+/* ---------- views ---------- */
+const V = {};
+
+V.home = () => {
+  const s = S.settings, t = totals(), d = daysBetween(today(), s.moveIn);
+  const must = S.items.filter(i=>i.priority==='must'), mustDone = must.filter(i=>i.status==='delivered').length;
+  const budget = s.budget || t.total || 1, pct = x => Math.max(0, Math.min(100, x/budget*100));
+  const over = t.total - s.budget;
+  const next = must.filter(i=>i.status==='idea'||i.status==='shortlist').sort((a,b)=>b.est-a.est).slice(0,5);
+  const due = S.tasks.filter(x=>x.lastDone).sort((a,b)=>nextDue(a).localeCompare(nextDue(b))).slice(0,3);
+  const billsM = S.bills.reduce((a,b)=>a+monthly(b),0);
+  const months = Math.max(1, Math.ceil(d/30.4));
+  const welcome = isEmpty() ? `
+  <div class="card welcome">
+    <h3>Welcome to Nest 🏡</h3>
+    <div class="mut">Plan every room before move-in, then track upkeep after. Start by adding a room, or connect the Google Sheet you already use on another device.</div>
+    <div class="acts wrap">
+      <button class="btn pri" data-act="addRoom">＋ Add a room</button>
+      <button class="btn" data-act="go" data-v="settings">Connect sync</button>
+      <button class="btn" data-act="sample">Try sample data</button>
+    </div>
+  </div>` : '';
+  return `${welcome}
+  <div class="card hero">
+    <div class="mut sm">${esc(s.household)} · move-in ${fmtDate(s.moveIn)}</div>
+    <div class="row" style="margin-top:10px;align-items:flex-end">
+      <div class="big">${d > 0 ? d.toLocaleString('en-MY') : d === 0 ? 'Today' : 'Moved in'}</div>
+      <div class="mut" style="margin-bottom:4px">${d > 0 ? (d === 1 ? 'day to go' : 'days to go') : d === 0 ? 'is move-in day 🎉' : Math.abs(d).toLocaleString('en-MY') + ' days ago'}</div>
+    </div>
+    ${d > 0 ? `<div class="sm mut" style="margin-top:8px">≈ ${Math.floor(d/30.4)} months · <b style="color:var(--acc2)">${rm((t.planned+t.committed)/months)}/month</b> to cover what's left</div>` : ''}
+  </div>
+
+  <div class="card">
+    <div class="row"><div class="b">Setup budget</div><div class="sp"></div><div class="sm ${over>0?'':'mut'}" style="${over>0?'color:var(--bad)':''}">${s.budget ? (over>0 ? rm(over)+' over' : rm(-over)+' headroom') : '<a href="#" data-act="go" data-v="settings">Set a budget</a>'}</div></div>
+    <div class="bar"><i style="width:${pct(t.spent)}%;background:var(--ok)"></i><i style="width:${pct(t.committed)}%;background:var(--warn)"></i><i style="width:${pct(t.planned)}%;background:#4a4a52"></i></div>
+    <div class="legend"><span><b style="background:var(--ok)"></b>Bought ${rm(t.spent)}</span><span><b style="background:var(--warn)"></b>Ordered ${rm(t.committed)}</span><span><b style="background:#4a4a52"></b>Planned ${rm(t.planned)}</span><span>Budget ${rm(s.budget)}</span></div>
+  </div>
+
+  <div class="grid2 w4">
+    <div class="card stat"><div class="mut sm">Must-haves</div><div class="v">${mustDone}/${must.length}</div></div>
+    <div class="card stat"><div class="mut sm">Items total</div><div class="v">${S.items.length}</div></div>
+    <div class="card stat"><div class="mut sm">Rooms</div><div class="v">${S.rooms.length}</div></div>
+    <div class="card stat"><div class="mut sm">Bills / month</div><div class="v">${rm(billsM)}</div></div>
+  </div>
+
+  <h2>Next must-haves<span class="sp"></span><button data-act="go" data-v="items">See all</button></h2>
+  ${next.length ? `<div class="list">${next.map(i=>itemRow(i)).join('')}</div>`
+    : `<div class="card empty">${must.length ? 'All must-haves are ordered or delivered 🎉' : 'No must-haves yet. Tap + to add one.'}</div>`}
+
+  <h2>Upkeep coming up<span class="sp"></span><button data-act="go" data-v="upkeep">Open</button></h2>
+  ${due.length ? `<div class="list">${due.map(taskRow).join('')}</div>` : `<div class="card empty sm">Starts after move-in. Tap <b>✓ Done</b> on a task in Upkeep to begin its cycle.</div>`}
+  `;
+};
+
+V.rooms = () => `
+  <div class="rooms">
+    ${S.rooms.map(r=>{
+      const its = S.items.filter(i=>i.roomId===r.id), done = its.filter(i=>i.status==='delivered').length;
+      const t = totals(its);
+      return `<button class="room" data-act="room" data-id="${esc(r.id)}">
+        <div class="e">${esc(r.icon)}</div><div class="n">${esc(r.name)}</div>
+        <div class="sm mut">${its.length} item${its.length===1?'':'s'} · ${rm(t.total)}</div>
+        <div class="mini"><i style="width:${its.length?done/its.length*100:0}%"></i></div>
+      </button>`;}).join('')}
+    <button class="room add" data-act="addRoom">＋ Add room</button>
+  </div>
+  ${S.items.some(i=>!i.roomId) ? `<h2>Whole house</h2><div class="list">${S.items.filter(i=>!i.roomId).sort(sortItems).map(i=>itemRow(i,false)).join('')}</div>` : ''}`;
+
+V.room = () => {
+  const r = roomOf(curRoom); if (!r) { view='rooms'; return V.rooms(); }
+  const its = S.items.filter(i=>i.roomId===r.id).sort(sortItems), t = totals(its);
+  const tasks = S.tasks.filter(x=>x.roomId===r.id);
+  return `
+  <div class="card"><div class="row"><div class="ic">${esc(r.icon)}</div><div class="sp" style="min-width:0"><div class="b">${esc(r.name)}</div><div class="sm mut">${its.length} items · bought ${rm(t.spent)} of ${rm(t.total)}</div></div><button class="btn sm" data-act="editRoom" data-id="${esc(r.id)}">Edit</button></div></div>
+  <h2>Items<span class="sp"></span><button data-act="addItem" data-room="${esc(r.id)}">＋ Add</button></h2>
+  ${its.length?`<div class="list">${its.map(i=>itemRow(i,false)).join('')}</div>`:`<div class="card empty">Nothing planned for this room yet.</div>`}
+  <h2>Upkeep<span class="sp"></span><button data-act="addTask" data-room="${esc(r.id)}">＋ Add</button></h2>
+  ${tasks.length?`<div class="list">${tasks.map(taskRow).join('')}</div>`:`<div class="card empty sm">No upkeep tasks for this room.</div>`}`;
+};
+
+function sortItems(a,b){
+  const p = {must:0,soon:1,later:2}, s = {idea:0,shortlist:1,ordered:2,delivered:3};
+  return (p[a.priority]-p[b.priority]) || (s[a.status]-s[b.status]) || a.name.localeCompare(b.name);
+}
+
+V.items = () => {
+  let its = S.items.slice();
+  if (fStatus!=='all') its = its.filter(i=>i.status===fStatus);
+  if (fPrio!=='all') its = its.filter(i=>i.priority===fPrio);
+  its.sort(sortItems);
+  const t = totals(its);
+  const chip = (k,l,cur,act) => `<button class="chip ${cur===k?'on':''}" data-act="${act}" data-k="${k}">${esc(l)}</button>`;
+  return `
+  <div class="chips">${chip('all','All statuses',fStatus,'fs')}${STATUSES.map(s=>chip(s.k,s.l,fStatus,'fs')).join('')}</div>
+  <div class="chips">${chip('all','All priorities',fPrio,'fp')}${PRIORITIES.map(p=>chip(p.k,p.l.split(':')[0],fPrio,'fp')).join('')}</div>
+  <div class="sm mut" style="margin:0 4px 10px">${its.length} item${its.length===1?'':'s'} · ${rm(t.total)} · tap a status pill to move it forward</div>
+  ${its.length?`<div class="list">${its.map(i=>itemRow(i,true)).join('')}</div>`:`<div class="card empty">${S.items.length?'No items match.':'No items yet. Tap + to add one.'}</div>`}`;
+};
+
+V.upkeep = () => {
+  const tasks = S.tasks.slice().sort((a,b)=>(nextDue(a)||'9999').localeCompare(nextDue(b)||'9999'));
+  const m = S.bills.reduce((a,b)=>a+monthly(b),0);
+  return `
+  <h2 style="margin-top:4px">Maintenance<span class="sp"></span><button data-act="addTask">＋ Add</button></h2>
+  ${tasks.length?`<div class="list">${tasks.map(taskRow).join('')}</div>`:`<div class="card empty">No upkeep tasks yet.</div>`}
+  <h2>Household bills<span class="sp"></span><button data-act="addBill">＋ Add</button></h2>
+  <div class="card row"><div class="sp"><div class="mut sm">Expected running cost</div><div class="b" style="font-size:20px">${rm(m)} / month</div></div><div class="mut sm" style="text-align:right">${rm(m*12)}<br>per year</div></div>
+  ${S.bills.length?`<div class="list">${S.bills.map(b=>`
+    <div class="li" data-act="editBill" data-id="${esc(b.id)}">
+      <div class="ic">🧾</div>
+      <div class="main"><div class="t">${esc(b.name)}</div><div class="sm mut t">${FREQS.find(f=>f.k===b.freq)?.l||''}${b.notes?' · '+esc(b.notes):''}</div></div>
+      <div class="b">${rm(b.amount)}</div>
+    </div>`).join('')}</div>`:''}
+  <div class="sm mut" style="margin:4px">Bills here are a forecast. Actual payments are recorded in Ledger.</div>`;
+};
+
+V.settings = () => {
+  const s = S.settings, snap = readJSON(SNAP_KEY);
+  return `
+  <div class="card">
+    <div class="f"><label for="setHousehold">Household name</label><input id="setHousehold" class="setf" data-set="household" value="${esc(s.household)}" autocomplete="off"></div>
+    <div class="f2">
+      <div class="f"><label for="setMoveIn">Move-in date</label><input id="setMoveIn" class="setf" type="date" data-set="moveIn" value="${esc(s.moveIn)}"></div>
+      <div class="f"><label for="setBudget">Setup budget (RM)</label><input id="setBudget" class="setf" type="number" inputmode="decimal" min="0" data-set="budget" value="${s.budget||''}" placeholder="0"></div>
+    </div>
+  </div>
+  <h2>Sync (Google Sheets)</h2>
+  <div class="card">
+    <div class="f"><label for="setSync">Apps Script web app URL</label><input id="setSync" class="setf" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" data-dev="syncUrl" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(D.syncUrl)}"></div>
+    <div class="hint">Stored on this device only. Paste the same URL on each device.</div>
+    <div class="row wrap"><button class="btn sm" data-act="pull">Pull now</button><button class="btn sm" data-act="push">Push now</button><div class="sp"></div><span class="sm mut">${D.syncUrl ? (D.lastSync ? 'Last synced '+new Date(D.lastSync).toLocaleString('en-MY',{dateStyle:'medium',timeStyle:'short'}) : 'Not synced yet') : 'Local only'}</span></div>
+  </div>
+  <h2>Data</h2>
+  <div class="card">
+    <div class="row wrap">
+      <button class="btn sm pri" data-act="export">Export JSON backup</button>
+      <button class="btn sm" data-act="import">Import JSON</button>
+      <button class="btn sm" data-act="sample">Load sample</button>
+      <button class="btn sm dan" data-act="clear">Clear all</button>
+    </div>
+    ${snap && snap.state ? `<div class="row" style="margin-top:12px"><div class="sp sm mut">Snapshot before “${esc(snap.reason)}” · ${new Date(snap.at).toLocaleString('en-MY',{dateStyle:'medium',timeStyle:'short'})}</div><button class="btn sm" data-act="restoreSnap">Restore</button></div>` : ''}
+  </div>
+  <div class="sm mut" style="margin:8px 4px">Nest · ${S.items.length} items · ${S.rooms.length} rooms · last change ${S.updatedAt?new Date(S.updatedAt).toLocaleString('en-MY',{dateStyle:'medium',timeStyle:'short'}):'—'}</div>`;
+};
+
+/* ---------- rows ---------- */
+function itemRow(i, showRoom){
+  const st = STATUSES.find(s=>s.k===i.status)||STATUSES[0];
+  const sub = [showRoom!==false ? roomName(i.roomId) : '', i.shop, i.category].filter(Boolean).map(esc).join(' · ');
+  return `<div class="li" data-act="editItem" data-id="${esc(i.id)}">
+    <span class="dot p-${i.priority}" title="${esc((PRIORITIES.find(p=>p.k===i.priority)||{}).l||'')}"></span>
+    <div class="main"><div class="t">${esc(i.name)}</div><div class="sm mut t">${sub}</div></div>
+    <div class="end"><div class="sm b">${rm(cost(i))}</div>
+    <button class="pill s-${i.status}" data-act="cycle" data-id="${esc(i.id)}" aria-label="Status: ${st.l}. Tap to move forward">${st.l}</button></div>
+  </div>`;
+}
+function taskRow(t){
+  return `<div class="li" data-act="editTask" data-id="${esc(t.id)}">
+    <div class="ic">${esc(roomIcon(t.roomId))}</div>
+    <div class="main"><div class="t">${esc(t.name)}</div><div class="sm mut t">Every ${t.interval} mo · ${t.lastDone?'last '+fmtDate(t.lastDone):'never done'}</div></div>
+    <div class="end">${dueBadge(t)}<button class="pill s-delivered" data-act="done" data-id="${esc(t.id)}">✓ Done</button></div>
+  </div>`;
+}
+
+/* ---------- render ---------- */
+const TITLES = {home:'Nest',rooms:'Rooms',items:'Shopping list',upkeep:'Upkeep',settings:'Settings'};
+let renderPending = false;
+function render(){
+  renderPending = false;
+  $('main').innerHTML = (V[view]||V.home)();
+  $('title').textContent = view==='room' ? roomName(curRoom) : (view==='home' ? (S.settings.household && S.settings.household!=='Our home' ? S.settings.household : 'Nest') : TITLES[view]);
+  $('back').hidden = view!=='room';
+  $('fab').style.display = view==='settings' ? 'none' : '';
+  const od = overdueCount();
+  document.querySelectorAll('nav button').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tab===view || (view==='room'&&b.dataset.tab==='rooms'));
+    if (b.dataset.tab==='upkeep'){ let e = b.querySelector('em'); if (od){ if(!e){ e=document.createElement('em'); b.appendChild(e);} e.textContent = od; } else if (e) e.remove(); }
+  });
+}
+/* Background sync results must not wipe out a field the user is typing in. */
+function softRender(){
+  const a = document.activeElement;
+  if (a && $('main').contains(a) && /INPUT|SELECT|TEXTAREA/.test(a.tagName)) { renderPending = true; return; }
+  render();
+}
+$('main').addEventListener('focusout', () => setTimeout(() => { if (renderPending) softRender(); }, 0));
+
+/* ---------- bottom sheet ---------- */
+/* Keep the scrim glued to the visual viewport, so with the iOS keyboard up
+   the sheet sits right above it and stays scrollable. */
+const vv = window.visualViewport;
+function fitViewport(){
+  if (!vv) return;
+  const r = document.documentElement.style;
+  r.setProperty('--vvh', vv.height + 'px');
+  r.setProperty('--vvt', vv.offsetTop + 'px');
+  document.body.classList.toggle('kb', window.innerHeight - vv.height > 120);
+}
+if (vv){ vv.addEventListener('resize', fitViewport); vv.addEventListener('scroll', fitViewport); fitViewport(); }
+
+let sheetOpen = false;
+function openForm({title, fields, values = {}, onSave, onDelete, extra = ''}){
+  const sheet = $('sheet');
+  const opt = (o,v) => o.map(x=>{ const k = typeof x==='string'?x:x.k, l = typeof x==='string'?x:x.l; return `<option value="${esc(k)}" ${String(v)===String(k)?'selected':''}>${esc(l)}</option>`; }).join('');
+  const field = f => {
+    const v = values[f.k] ?? f.def ?? '';
+    const id = 'f_' + f.k;
+    let inp;
+    if (f.type==='select') inp = `<select id="${id}" name="${f.k}">${opt(f.options, v)}</select>`;
+    else if (f.type==='textarea') inp = `<textarea id="${id}" name="${f.k}" rows="3">${esc(v)}</textarea>`;
+    else inp = `<input id="${id}" name="${f.k}" type="${f.type||'text'}" ${f.type==='number'?'inputmode="decimal" step="any" min="0"':''} ${f.type==='url'?'inputmode="url" autocapitalize="off" spellcheck="false"':''} ${f.req?'required':''} autocomplete="off" placeholder="${esc(f.ph||'')}" value="${esc(v)}">`;
+    return `<div class="f"><label for="${id}">${esc(f.label)}</label>${inp}</div>`;
+  };
+  const rows = []; for (let i=0;i<fields.length;i++){ const f=fields[i]; if (f.half && fields[i+1]?.half){ rows.push(`<div class="f2">${field(f)}${field(fields[i+1])}</div>`); i++; } else rows.push(field(f)); }
+  sheet.innerHTML = `<div class="grab"></div><h3>${esc(title)}</h3><form id="frm" novalidate>${rows.join('')}${extra}
+    <div class="acts">${onDelete?'<button type="button" class="btn dan" id="del">Delete</button>':''}<button type="button" class="btn" id="cancel">Cancel</button><button class="btn pri" type="submit">Save</button></div></form>`;
+  $('scrim').classList.add('on'); document.body.classList.add('locked'); sheetOpen = true;
+  sheet.scrollTop = 0;
+  if (!history.state || !history.state.sheet) history.pushState({sheet:1}, '');
+  const frm = $('frm');
+  frm.onsubmit = e => {
+    e.preventDefault();
+    const o = {}; new FormData(frm).forEach((v,k)=>o[k]=typeof v==='string'?v.trim():v);
+    fields.filter(f=>f.type==='number').forEach(f=>{ o[f.k] = (o[f.k]==='' && f.blank) ? '' : num(o[f.k]); });
+    fields.filter(f=>f.type==='url').forEach(f=>{ if (o[f.k] && !/^https?:\/\//i.test(o[f.k])) o[f.k] = 'https://' + o[f.k]; });
+    const missing = fields.find(f=>f.req && !o[f.k]);
+    if (missing){ toast(`Please fill in “${missing.label}”`, {error:true}); frm.elements[missing.k]?.focus(); return; }
+    if (fields.some(f=>f.type==='number' && o[f.k] !== '' && o[f.k] < 0)) return toast('Amounts cannot be negative', {error:true});
+    onSave(o); closeSheet(); save();
+  };
+  $('cancel').onclick = closeSheet;
+  if (onDelete) $('del').onclick = () => { if (confirm('Delete this? This cannot be undone.')) { onDelete(); closeSheet(); save(); } };
+}
+function closeSheet(fromPop){
+  if (!sheetOpen) return;
+  sheetOpen = false;
+  if (document.activeElement && $('sheet').contains(document.activeElement)) document.activeElement.blur();
+  $('scrim').classList.remove('on'); document.body.classList.remove('locked');
+  if (!fromPop && history.state && history.state.sheet) history.back();
+}
+/* Android back button / swipe-back closes the sheet instead of leaving the app */
+window.addEventListener('popstate', () => closeSheet(true));
+$('scrim').addEventListener('click', e => { if (e.target.id==='scrim') closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeSheet(); });
+/* Keep the focused field visible above the keyboard */
+$('sheet').addEventListener('focusin', e => {
+  if (!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  setTimeout(() => e.target.scrollIntoView({block:'center', behavior:'smooth'}), 320);
+});
+/* Desktop browsers only open the date picker from the tiny icon; open it on any click */
+document.addEventListener('click', e => {
+  const el = e.target;
+  if (el.tagName==='INPUT' && el.type==='date' && typeof el.showPicker==='function'){ try { el.showPicker(); } catch(_){} }
+});
+
+const roomOpts = () => [{k:'',l:'🏠 Whole house'}, ...S.rooms.map(r=>({k:r.id,l:r.icon+' '+r.name}))];
+const itemFields = () => [
+  {k:'name',label:'Item',req:true,ph:'e.g. Fridge 2-door inverter'},
+  {k:'roomId',label:'Room',type:'select',options:roomOpts(),half:true},
+  {k:'category',label:'Category',type:'select',options:CATEGORIES,half:true},
+  {k:'priority',label:'Priority',type:'select',options:PRIORITIES},
+  {k:'status',label:'Status',type:'select',options:STATUSES,half:true},
+  {k:'date',label:'Bought / delivered',type:'date',half:true},
+  {k:'est',label:'Estimate (RM)',type:'number',half:true},
+  {k:'actual',label:'Actual paid (RM)',type:'number',blank:true,ph:'—',half:true},
+  {k:'shop',label:'Shop / brand',ph:'IKEA, Harvey Norman…',half:true},
+  {k:'warranty',label:'Warranty until',type:'date',half:true},
+  {k:'link',label:'Link',type:'url',ph:'https://'},
+  {k:'notes',label:'Notes (size, colour, model no.)',type:'textarea'}
+];
+function editItem(id, preset = {}){
+  const it = S.items.find(i=>i.id===id);
+  const link = it && safeUrl(it.link);
+  openForm({ title: it?'Edit item':'New item', fields:itemFields(),
+    values: it || {roomId: preset.roomId||'', category:'Furniture', priority:'must', status:'idea'},
+    extra: link ? `<div class="hint" style="margin-top:-6px"><a href="${esc(link)}" target="_blank" rel="noopener">Open link ↗</a></div>` : '',
+    onSave: o => {
+      if (o.status==='delivered' && !o.date) o.date = today();
+      if (it) stamp(Object.assign(it,o)); else S.items.push(stamp({id:uid(),...o}));
+    },
+    onDelete: it ? () => removeRec('items', id) : null });
+}
+function editRoom(id){
+  const r = roomOf(id);
+  openForm({ title: r?'Edit room':'New room', fields:[{k:'name',label:'Room name',req:true,ph:'e.g. Kitchen'},{k:'icon',label:'Emoji',def:'🚪'}], values:r||{},
+    onSave: o => { o.icon = o.icon || '🚪'; if (r) stamp(Object.assign(r,o)); else S.rooms.push(stamp({id:uid(),...o})); },
+    onDelete: r ? () => {
+      removeRec('rooms', id);
+      S.items.forEach(i=>{ if(i.roomId===id){ i.roomId=''; stamp(i); } });
+      S.tasks.forEach(t=>{ if(t.roomId===id){ t.roomId=''; stamp(t); } });
+      view='rooms';
+    } : null });
+}
+function editTask(id, preset = {}){
+  const t = S.tasks.find(x=>x.id===id);
+  openForm({ title: t?'Edit upkeep task':'New upkeep task', fields:[
+      {k:'name',label:'Task',req:true,ph:'e.g. Aircond servicing'},
+      {k:'roomId',label:'Room',type:'select',options:roomOpts()},
+      {k:'interval',label:'Every (months)',type:'number',def:6,half:true},
+      {k:'lastDone',label:'Last done',type:'date',half:true},
+      {k:'notes',label:'Notes / contractor',type:'textarea'}],
+    values:t||{roomId:preset.roomId||''},
+    onSave: o => { o.interval = Math.max(1, Math.round(o.interval)||1); if (t) stamp(Object.assign(t,o)); else S.tasks.push(stamp({id:uid(),...o})); },
+    onDelete: t ? () => removeRec('tasks', id) : null });
+}
+function editBill(id){
+  const b = S.bills.find(x=>x.id===id);
+  openForm({ title: b?'Edit bill':'New bill', fields:[
+      {k:'name',label:'Bill',req:true,ph:'e.g. TNB electricity'},
+      {k:'amount',label:'Amount (RM)',type:'number',half:true},
+      {k:'freq',label:'Frequency',type:'select',options:FREQS,half:true},
+      {k:'notes',label:'Notes',type:'textarea'}],
+    values:b||{freq:'monthly'},
+    onSave: o => { if (b) stamp(Object.assign(b,o)); else S.bills.push(stamp({id:uid(),...o})); },
+    onDelete: b ? () => removeRec('bills', id) : null });
+}
+
+/* ---------- events ---------- */
+function go(v){ view = v; render(); window.scrollTo(0,0); }
+$('nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) go(b.dataset.tab); });
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, id = el.dataset.id;
+  if (el.tagName==='A') e.preventDefault();
+  switch(a){
+    case 'go': go(el.dataset.v); break;
+    case 'back': go('rooms'); break;
+    case 'room': curRoom = id; go('room'); break;
+    case 'addRoom': editRoom(); break;
+    case 'editRoom': editRoom(id); break;
+    case 'addItem': editItem(null,{roomId:el.dataset.room}); break;
+    case 'editItem': editItem(id); break;
+    case 'cycle': {
+      const it = S.items.find(i=>i.id===id); if (!it) break;
+      const k = STATUSES.findIndex(s=>s.k===it.status);
+      if (k >= STATUSES.length-1){ toast('Already delivered. Open the item to change its status.'); break; }
+      const prev = {status:it.status, date:it.date};
+      it.status = STATUSES[k+1].k;
+      if (it.status==='delivered' && !it.date) it.date = today();
+      stamp(it); save();
+      toast(`${it.name} → ${STATUSES[k+1].l}`, {undo: () => { Object.assign(it, prev); stamp(it); save(); }});
+      break; }
+    case 'addTask': editTask(null,{roomId:el.dataset.room}); break;
+    case 'editTask': editTask(id); break;
+    case 'done': {
+      const t = S.tasks.find(x=>x.id===id); if (!t) break;
+      const prev = t.lastDone;
+      t.lastDone = today(); stamp(t); save();
+      toast('Logged · next due '+fmtDate(nextDue(t)), {undo: () => { t.lastDone = prev; stamp(t); save(); }});
+      break; }
+    case 'addBill': editBill(); break;
+    case 'editBill': editBill(id); break;
+    case 'fs': fStatus = el.dataset.k; render(); break;
+    case 'fp': fPrio = el.dataset.k; render(); break;
+    case 'fab':
+      if (view==='upkeep') editTask(); else if (view==='rooms') editRoom(); else editItem(null,{roomId: view==='room'?curRoom:''});
+      break;
+    case 'export': exportJSON(); break;
+    case 'import': $('importFile').click(); break;
+    case 'sample':
+      if (isEmpty() || confirm('Replace all rooms, items, tasks and bills with sample data? A snapshot is kept so you can restore.')) { replaceAll(sample(), 'Load sample', true); setSetting('budget', S.settings.budget || 35000); save(); toast('Sample data loaded'); }
+      break;
+    case 'clear':
+      if (confirm('Delete all rooms, items, tasks and bills? A snapshot is kept on this device so you can restore.')) { replaceAll(blank(), 'Clear all', true); toast('Cleared'); }
+      break;
+    case 'restoreSnap': {
+      const snap = readJSON(SNAP_KEY);
+      if (snap && snap.state && confirm('Restore the snapshot? Current data will be replaced (and kept as the new snapshot).')) { replaceAll(snap.state, 'Restore snapshot'); toast('Snapshot restored'); }
+      break; }
+    case 'pull': pull(true); break;
+    case 'push': sync(true); break;
+    case 'syncTap': if (D.syncUrl) pull(true); else go('settings'); break;
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target, k = t.dataset && t.dataset.set, dk = t.dataset && t.dataset.dev;
+  if (k){
+    let v = t.value.trim();
+    if (k==='budget') v = Math.max(0, num(v));
+    if (k==='moveIn' && !isDate(v)) { toast('Pick a valid move-in date', {error:true}); render(); return; }
+    setSetting(k, v); save();
+  } else if (dk==='syncUrl'){
+    const v = t.value.trim();
+    if (v && !/^https:\/\/script\.google(usercontent)?\.com\//.test(v)) toast('That does not look like an Apps Script /exec URL. Trying anyway…', {error:true});
+    D.syncUrl = v; D.lastSync = 0; saveDevice(); render();
+    if (v) pull(true);
+  }
+});
+$('importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!Array.isArray(d.items) || !Array.isArray(d.rooms)) throw new Error('not a Nest backup');
+    if (confirm(`Import ${d.rooms.length} rooms and ${d.items.length} items? This replaces what is on this device (a snapshot is kept).`)) { replaceAll(d, 'Import JSON'); toast('Imported'); }
+  } catch(err){ toast('That file is not a Nest backup', {error:true}); }
+  e.target.value = '';
+});
+async function exportJSON(){
+  const name = `nest-backup-${today()}.json`;
+  const data = JSON.stringify(S, null, 2);
+  try {
+    // iOS home-screen apps ignore <a download>; the share sheet lets you save to Files / Drive.
+    const file = new File([data], name, {type:'application/json'});
+    const standalone = window.navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+    if (standalone && navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title:'Nest backup'}); return;
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    toast('Backup downloaded');
+  } catch(err){ if (err.name !== 'AbortError') toast('Export failed: '+err.message, {error:true}); }
+}
+
+/* ---------- sync (Apps Script) ---------- */
+let syncTimer = null, syncing = false, syncAgain = false, failStreak = 0, lastPull = 0;
+function setSync(text, err){ const el = $('sync'); el.textContent = text; el.classList.toggle('err', !!err); }
+function queueSync(){ if (!D.syncUrl) return; clearTimeout(syncTimer); setSync('● saving'); syncTimer = setTimeout(()=>sync(false), 1200); }
+
+async function api(method, body){
+  const url = D.syncUrl;
+  const ctrl = new AbortController(), timer = setTimeout(()=>ctrl.abort(), 25000);
+  try {
+    // POST as text/plain (fetch's default for a string body) so there is no CORS preflight.
+    const r = method==='GET'
+      ? await fetch(url + (url.includes('?')?'&':'?') + 'action=get&t=' + now(), {signal:ctrl.signal, cache:'no-store'})
+      : await fetch(url, {method:'POST', body:JSON.stringify(body), signal:ctrl.signal});
+    if (!r.ok) throw new Error('server replied ' + r.status);
+    const txt = await r.text();
+    let j; try { j = JSON.parse(txt); } catch(_){ throw new Error('the URL did not return Nest data. Check it ends in /exec and access is “Anyone”.'); }
+    if (!j.ok) throw new Error(j.error || 'unknown error');
+    return j;
+  } catch(e){
+    if (e.name==='AbortError') throw new Error('timed out');
+    if (e instanceof TypeError) throw new Error(navigator.onLine ? 'could not reach Google' : 'no connection');
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+function applyRemote(remote){
+  const before = sig(S);
+  S = mergeStates(S, normalize(remote));
+  if (sig(S) !== before){ persist(); softRender(); }
+}
+function syncFailed(e, manual){
+  failStreak++;
+  setSync(navigator.onLine ? '⚠ not synced' : '⚠ offline', true);
+  // Tell the user once per failure streak (not on every edit); data is already saved locally.
+  if (manual || failStreak === 1) toast('Sync failed: ' + e.message + '. Your changes are saved on this device.', {error:true});
+}
+function syncOk(manual, msg){
+  failStreak = 0; D.lastSync = now(); saveDevice(); setSync('✓ synced');
+  if (manual) toast(msg);
+  if (view==='settings') softRender();
+}
+/* Push: send everything; the script merges per record and returns the merged state. */
+async function sync(manual){
+  if (!D.syncUrl){ if (manual) toast('Add your Apps Script URL first', {error:true}); return; }
+  if (syncing){ syncAgain = true; return; }
+  syncing = true; clearTimeout(syncTimer); setSync('● syncing');
+  try { const j = await api('POST', {action:'save', data:S}); applyRemote(j.data); syncOk(manual, 'Synced with Google Sheets'); }
+  catch(e){ syncFailed(e, manual); }
+  finally { syncing = false; if (syncAgain){ syncAgain = false; sync(false); } }
+}
+/* Pull: read the Sheet, merge, and push back only if this device had something new. */
+async function pull(manual){
+  if (!D.syncUrl){ if (manual) toast('Add your Apps Script URL first', {error:true}); return; }
+  if (syncing){ if (manual) syncAgain = true; return; }
+  syncing = true; lastPull = now(); setSync('● syncing');
+  let needPush = false;
+  try {
+    const j = await api('GET');
+    const remote = normalize(j.data);
+    const before = sig(S);
+    applyRemote(remote);
+    needPush = sig(S) !== sig(remote);
+    if (!needPush) syncOk(manual, sig(S) === before ? 'Already up to date' : 'Pulled latest from Sheets');
+  } catch(e){ syncFailed(e, manual); }
+  finally { syncing = false; }
+  if (needPush || syncAgain){ syncAgain = false; sync(manual); }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState==='visible'){ if (now() - lastPull > 20000) pull(false); render(); }
+  else if (syncTimer && D.syncUrl){ sync(false); } // leaving the app: flush pending edits now
+});
+window.addEventListener('online', () => { if (D.syncUrl) sync(false); });
+window.addEventListener('offline', () => { if (D.syncUrl) setSync('⚠ offline', true); });
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(m, opts = {}){
+  const t = $('toast'), btn = $('toastBtn');
+  $('toastMsg').textContent = m;
+  t.classList.toggle('err', !!opts.error);
+  if (opts.undo){ btn.hidden = false; btn.textContent = 'Undo'; btn.onclick = () => { t.classList.remove('on'); opts.undo(); }; }
+  else { btn.hidden = true; btn.onclick = null; }
+  t.classList.add('on'); clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('on'), opts.error ? 5000 : opts.undo ? 4500 : 2400);
+}
+window.addEventListener('error', e => toast('Something went wrong: ' + (e.message || 'unknown error'), {error:true}));
+window.addEventListener('unhandledrejection', e => toast('Something went wrong: ' + ((e.reason && e.reason.message) || e.reason), {error:true}));
+
+/* ---------- start ---------- */
+render();
+if (D.syncUrl) pull(false);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
