@@ -27,6 +27,12 @@ Dashboard card: `GET <exec-url>?action=summary`.
 - Every change is saved with who did it: see **Recent activity** on Home, or the full feed (latest 300). The Sheet keeps it in the `log` tab.
 - The link and code hold your sync URL, so only send them to people you trust.
 
+## Rental and home costs
+- Settings → **Home & money**: pick *Owned* or *Rented*, add household income (and loan installment if you own).
+- Renting: Upkeep → **Rental** holds rent, due day, deposits and tenancy dates. Tap *Mark paid* each month (Home reminds you). It warns 60 days before the tenancy ends.
+- Upkeep → **Home cost** adds rent or installment plus bills, compares them with income (30% / 40% guides) and gives tips.
+- **💡 Suggested** lists common Malaysian bills (TNB, water, Indah Water, internet, cukai pintu…) and upkeep tasks you have not added. Amounts are rough guides; the form opens so you enter your real one.
+
 ## Safety nets
 - Every change is saved locally first; a failed sync shows a red toast and retries on the next change / when back online.
 - **Export JSON backup** (Settings). In the iPhone home-screen app it opens the share sheet → *Save to Files*.

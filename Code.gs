@@ -27,6 +27,7 @@ const COLLECTIONS = {
   items: ['id', 'roomId', 'name', 'category', 'priority', 'status', 'est', 'actual', 'shop', 'link', 'date', 'warranty', 'notes', 'paid', 'by', 'eb', 'u'],
   tasks: ['id', 'name', 'roomId', 'interval', 'lastDone', 'doneBy', 'notes', 'by', 'eb', 'u'],
   bills: ['id', 'name', 'amount', 'freq', 'notes', 'by', 'eb', 'u'],
+  pays: ['id', 'month', 'amount', 'date', 'paid', 'by', 'eb', 'u'], // rent payments, one per month
   log: ['id', 'at', 'by', 'text', 'u'] // activity: who did what (newest LOG_MAX kept)
 };
 const NUMERIC = ['est', 'actual', 'interval', 'amount', 'at', 'u'];
@@ -208,6 +209,9 @@ function summary_(s) {
     spent: spent, committed: committed, planned: planned,
     mustDone: must.filter(i => i.status === 'delivered').length, mustTotal: must.length,
     overdueTasks: overdue,
+    homeType: (s.settings || {}).homeType || 'own',
+    rent: Number((s.settings || {}).rent || 0),
+    rentPaidThisMonth: (s.pays || []).some(p => p.month === today.slice(0, 7)),
     updatedAt: s.updatedAt
   };
 }

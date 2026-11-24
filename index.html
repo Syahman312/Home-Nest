@@ -39,6 +39,17 @@ header h1{margin:0;font-size:22px;letter-spacing:-.3px;flex:0 1 auto;min-width:0
 #sw{position:absolute;inset:0;opacity:0;width:100%;font-size:16px;cursor:pointer}
 .spc{font-size:11px;font-weight:700;background:var(--acc);color:#1a1208;padding:3px 8px;border-radius:99px;white-space:nowrap;flex:none}
 .split .r{margin:10px 0 0}
+details.sugg{margin:0 0 12px}
+details.sugg summary{cursor:pointer;color:var(--acc);font-size:13.5px;padding:6px 4px;list-style:none}
+details.sugg summary::-webkit-details-marker{display:none}
+details.sugg[open] summary{margin-bottom:6px}
+.meter{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin:8px 0 4px;position:relative}
+.meter i{display:block;height:100%}
+.meter b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--tx);opacity:.6}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:0}
+.tip{font-size:13px;color:var(--mut);padding:6px 0 0}
+.tip b{color:var(--tx)}
 .split .r .row{font-size:14px}
 .homes .row{padding:9px 0;border-bottom:1px solid var(--line)}
 .homes .row:last-child{border-bottom:0}
@@ -245,10 +256,11 @@ const spKey = (id, k) => id ? 'sp.' + id + '.' + k : k;
 const KEY = spKey(SPC, 'nest.v1');            // app state (kept from the prototype so old data loads)
 const DEV_KEY = spKey(SPC, 'nest.device');    // per-device: sync URL, last sync time
 const SNAP_KEY = spKey(SPC, 'nest.snapshot'); // copy taken before import / sample / clear
-const DATA = ['rooms', 'items', 'tasks', 'bills'];   // user data (import / sample / clear touch only these)
+const DATA = ['rooms', 'items', 'tasks', 'bills', 'pays'];   // user data (import / sample / clear touch only these)
 const COLLS = [...DATA, 'log'];                       // everything that syncs
 const LOG_MAX = 300;                                  // activity entries kept
 const TOMBSTONE_DAYS = 400;
+const NUM_SETTINGS = ['income', 'installment', 'rent', 'rentDay', 'rentDeposit', 'utilDeposit'];
 
 const STATUSES = [
   {k:'idea',      l:'Idea'},
@@ -298,7 +310,7 @@ function addMonths(s, m){
 function blank(){
   return { version:2, updatedAt:0, settingsAt:0,
     settings:{ household:'Our home', moveIn:'2028-10-01', budget:0 },
-    rooms:[], items:[], tasks:[], bills:[], deleted:{} };
+    rooms:[], items:[], tasks:[], bills:[], pays:[], deleted:{} };
 }
 
 function normalize(s){
@@ -307,6 +319,10 @@ function normalize(s){
   const out = { version:2, updatedAt:num(s.updatedAt), settingsAt:num(s.settingsAt) };
   out.settings = Object.assign({}, b.settings, s.settings || {});
   out.settings.budget = num(out.settings.budget);
+  NUM_SETTINGS.forEach(k => { out.settings[k] = num(out.settings[k]); });
+  if (!['own','rent'].includes(out.settings.homeType)) out.settings.homeType = 'own';
+  ['leaseStart','leaseEnd'].forEach(k => { if (!isDate(out.settings[k])) out.settings[k] = ''; });
+  out.settings.landlord = out.settings.landlord == null ? '' : String(out.settings.landlord);
   if (!isDate(out.settings.moveIn)) out.settings.moveIn = b.settings.moveIn;
   delete out.settings.syncUrl; // device-only, lives in DEV_KEY
   const str = v => v == null ? '' : String(v);
@@ -324,6 +340,8 @@ function normalize(s){
   out.bills = (s.bills || []).filter(x => x && x.id).map(x => ({
     id:str(x.id), name:str(x.name), amount:num(x.amount),
     freq:FREQS.some(f => f.k === x.freq) ? x.freq : 'monthly', notes:str(x.notes), by:str(x.by), eb:str(x.eb), u:num(x.u) }));
+  out.pays = (s.pays || []).filter(x => x && x.id).map(x => ({ id:str(x.id), month:/^\d{4}-\d{2}$/.test(x.month) ? x.month : '', amount:num(x.amount),
+    date:isDate(x.date) ? x.date : '', paid:str(x.paid), by:str(x.by), eb:str(x.eb), u:num(x.u) })).filter(x => x.month);
   out.log = (s.log || []).filter(x => x && x.id && x.text).map(x => ({ id:str(x.id), at:num(x.at), by:str(x.by), text:str(x.text), u:num(x.u) }));
   out.deleted = {};
   Object.entries(s.deleted || {}).forEach(([id, t]) => { if (num(t)) out.deleted[id] = num(t); });
@@ -507,7 +525,7 @@ V.home = () => {
   const meCard = D.syncUrl && !D.me ? `
   <div class="card row wrap"><div class="sp"><b>Who's on this device?</b><div class="sm mut">Add your name so your partner sees who changed what.</div></div><button class="btn sm pri" data-act="setMe">Add name</button></div>` : '';
   const acts = actList(5);
-  return `${welcome}${shared() ? splitCard() : meCard}
+  return `${welcome}${renting() ? rentCard(false) : ''}${shared() ? splitCard() : meCard}
   <div class="cols"><div>
   <div class="card hero">
     <div class="mut sm">${esc(s.household)} · move-in ${fmtDate(s.moveIn)}</div>
@@ -591,20 +609,23 @@ V.items = () => {
 
 V.upkeep = () => {
   const tasks = S.tasks.slice().sort((a,b)=>(nextDue(a)||'9999').localeCompare(nextDue(b)||'9999'));
-  const m = S.bills.reduce((a,b)=>a+monthly(b),0);
   return `
   <div class="cols"><div>
-  <h2 style="margin-top:4px">Maintenance<span class="sp"></span><button data-act="addTask">＋ Add</button></h2>
+  ${renting() ? `<h2 style="margin-top:4px">Rental</h2>${rentCard(true)}` : ''}
+  <h2 ${renting() ? '' : 'style="margin-top:4px"'}>Maintenance<span class="sp"></span><button data-act="addTask">＋ Add</button></h2>
   ${tasks.length?`<div class="list">${tasks.map(taskRow).join('')}</div>`:`<div class="card empty">No upkeep tasks yet.</div>`}
+  ${suggList(taskSugg(), 'sugTask', x => 'Every ' + (x.i >= 12 && x.i % 12 === 0 ? (x.i/12 === 1 ? 'year' : x.i/12 + ' years') : x.i + ' months'))}
   </div><div>
+  <h2 style="margin-top:4px">Home cost</h2>
+  ${costCard()}
   <h2>Household bills<span class="sp"></span><button data-act="addBill">＋ Add</button></h2>
-  <div class="card row"><div class="sp"><div class="mut sm">Expected running cost</div><div class="b" style="font-size:20px">${rm(m)} / month</div></div><div class="mut sm" style="text-align:right">${rm(m*12)}<br>per year</div></div>
   ${S.bills.length?`<div class="list">${S.bills.map(b=>`
     <div class="li" data-act="editBill" data-id="${esc(b.id)}">
       <div class="ic">🧾</div>
       <div class="main"><div class="t">${esc(b.name)}</div><div class="sm mut t">${FREQS.find(f=>f.k===b.freq)?.l||''}${b.notes?' · '+esc(b.notes):''}</div></div>
       <div class="b">${rm(b.amount)}</div>
     </div>`).join('')}</div>`:''}
+  ${suggList(billSugg(), 'sugBill', x => 'About ' + rm(x.a) + (x.f === 'yearly' ? ' a year' : ' a month') + ' · ' + esc(x.h))}
   <div class="sm mut" style="margin:4px">Bills here are a forecast. Actual payments are recorded in Ledger.</div>
   </div></div>`;
 };
@@ -618,6 +639,15 @@ V.settings = () => {
       <div class="f"><label for="setMoveIn">Move-in date</label><input id="setMoveIn" class="setf" type="date" data-set="moveIn" value="${esc(s.moveIn)}"></div>
       <div class="f"><label for="setBudget">Setup budget (RM)</label><input id="setBudget" class="setf" type="number" inputmode="decimal" min="0" data-set="budget" value="${s.budget||''}" placeholder="0"></div>
     </div>
+  </div>
+  <h2>Home &amp; money</h2>
+  <div class="card">
+    <div class="f2">
+      <div class="f"><label for="setType">This home is</label><select id="setType" class="setf" data-set="homeType"><option value="own" ${s.homeType!=='rent'?'selected':''}>Owned / buying</option><option value="rent" ${s.homeType==='rent'?'selected':''}>Rented</option></select></div>
+      <div class="f"><label for="setIncome">Household income / month (RM)</label><input id="setIncome" class="setf" type="number" inputmode="decimal" min="0" data-set="income" value="${s.income||''}" placeholder="Take-home, both of you"></div>
+    </div>
+    ${s.homeType==='rent' ? `<button class="btn sm" data-act="editRent">Rental details</button>` : `<div class="f"><label for="setInst">Home loan installment / month (RM)</label><input id="setInst" class="setf" type="number" inputmode="decimal" min="0" data-set="installment" value="${s.installment||''}" placeholder="0 if paid off or not started"></div>`}
+    <div class="hint" style="margin:10px 2px 0">Used for the monthly home cost check in Upkeep. Shared with everyone in this home.</div>
   </div>
   <h2>👫 Shared homes (record together)</h2>
   <div class="card">
@@ -678,13 +708,14 @@ function splitCard(){
   if (!D.me) return `<div class="card row wrap"><div class="sp"><b>👤 What's your name?</b><div class="sm mut">So your partner sees who added and paid for each item.</div></div><button class="btn sm pri" data-act="setMe">Add name</button></div>`;
   const by = {};
   S.items.filter(i => i.status==='ordered' || i.status==='delivered').forEach(i => { const k = i.paid || ''; by[k] = (by[k]||0) + cost(i); });
+  S.pays.forEach(x => { const k = x.paid || ''; by[k] = (by[k]||0) + x.amount; });
   const E = Object.entries(by).filter(x => x[1] > 0).sort((a,b) => b[1]-a[1]), tot = E.reduce((a,x) => a+x[1], 0);
   const P = E.filter(x => x[0]);
   let owe = '';
   if (P.length === 2){ const half = (P[0][1]+P[1][1])/2, d = P[0][1]-half; if (d > 0.5) owe = `<div class="card sm" style="margin:12px 0 0;background:var(--card2)">⚖️ Split equally, <b>${esc(who(P[1][0]))}</b> ${P[1][0]===D.me?'owe':'owes'} <b>${esc(who(P[0][0]))}</b> ${rm(d)}.</div>`; }
   return `<div class="card split"><div class="row"><b>👫 Who paid what</b><span class="sp"></span><b>${rm(tot)}</b></div>
     ${E.map(([n,v]) => `<div class="r"><div class="row">${n ? av(n,true) : ''}<span class="sp">${n ? esc(who(n)) : '<span class="mut">Not marked</span>'}</span><span>${rm(v)} <span class="mut sm">${tot?Math.round(v/tot*100):0}%</span></span></div><div class="mini"><i style="width:${tot?v/tot*100:0}%;${n===D.me?'':'background:var(--blue)'}"></i></div></div>`).join('') || '<div class="sm mut" style="margin-top:6px">Nothing ordered or bought yet.</div>'}
-    ${owe}<div class="sm mut" style="margin-top:10px">Counts ordered and delivered items. Set <b>Paid by</b> on an item; it fills in your name when you move it to Ordered.</div></div>`;
+    ${owe}<div class="sm mut" style="margin-top:10px">Counts ordered and delivered items${S.pays.length ? ', and rent paid' : ''}. Set <b>Paid by</b> on an item; it fills in your name when you move it to Ordered.</div></div>`;
 }
 
 /* ---------- homes on this device ---------- */
@@ -783,6 +814,146 @@ function handleJoin(){
     extra:`<div class="hint">You will share rooms, the shopping list, upkeep and bills. Everything you change shows your name.${!SPC && !D.syncUrl && isEmpty() ? '' : ' Your own home on this phone stays as it is: switch between them from the title on Home.'}</div>`,
     onSave: o => { D.me = o.me.slice(0, 30); saveDevice(); setTimeout(() => joinHome(url), 0); } });
   return true;
+}
+
+/* ---------- rental ---------- */
+const ym = d => d.slice(0, 7);
+const lastDay = m => new Date(+m.slice(0,4), +m.slice(5,7), 0).getDate();
+const rentDue = m => m + '-' + String(Math.min(Math.max(1, S.settings.rentDay || 1), lastDay(m))).padStart(2, '0');
+const monthName = m => parseD(m + '-01').toLocaleDateString('en-MY', {month:'short', year:'numeric'});
+const nextMonth = m => { const d = parseD(m + '-01'); d.setMonth(d.getMonth() + 1); return iso(d); };
+const renting = () => S.settings.homeType === 'rent';
+/* Rent state for this month: paid, or how many days until / past the due date. */
+function rentNow(){
+  const m = ym(today()), p = S.pays.find(x => x.month === m), due = rentDue(m);
+  return { m, p, due, days:daysBetween(today(), due) };
+}
+function editRent(){
+  const s = S.settings;
+  openForm({ title:'Rental details', fields:[
+      {k:'rent',label:'Rent / month (RM)',type:'number',req:true,half:true},
+      {k:'rentDay',label:'Due on day',type:'number',def:1,half:true},
+      {k:'rentDeposit',label:'Security deposit (RM)',type:'number',half:true},
+      {k:'utilDeposit',label:'Utility deposit (RM)',type:'number',half:true},
+      {k:'leaseStart',label:'Tenancy starts',type:'date',half:true},
+      {k:'leaseEnd',label:'Tenancy ends',type:'date',half:true},
+      {k:'landlord',label:'Landlord / agent (name, phone)'}],
+    values:s,
+    extra:'<div class="hint">Common in Malaysia: 2 months security deposit, ½ month utility deposit and 1 month rent in advance. Keep the signed tenancy agreement and a move-in photo record so you get the deposit back.</div>',
+    onSave: o => {
+      o.rentDay = Math.min(31, Math.max(1, Math.round(o.rentDay) || 1));
+      Object.entries(o).forEach(([k, v]) => { if (String(s[k] ?? '') !== String(v)) setSetting(k, v); });
+      logAct('updated rental details');
+    } });
+}
+function payRent(m){
+  const id = 'rent-' + m, old = S.pays.find(x => x.id === id);
+  if (old) return toast(monthName(m) + ' is already marked paid');
+  S.pays.push(fresh({ id, month:m, amount:S.settings.rent, date:today(), paid:D.me || '' }));
+  delete S.deleted[id];
+  const lid = logAct('paid rent for ' + monthName(m)); save();
+  toast('Rent for ' + monthName(m) + ' marked paid', {undo: () => { removeRec('pays', id); unlog(lid); save(); }});
+}
+function editPay(id){
+  const x = S.pays.find(y => y.id === id); if (!x) return;
+  openForm({ title:'Rent · ' + monthName(x.month), fields:[
+      {k:'amount',label:'Amount (RM)',type:'number',half:true},
+      {k:'date',label:'Paid on',type:'date',half:true},
+      ...(shared() ? [{k:'paid',label:'Paid by',type:'select',options:[{k:'',l:'Not marked'}, ...people().map(p=>({k:p,l:p}))]}] : [])],
+    values:x, extra:byLine(x),
+    onSave: o => { stamp(Object.assign(x, o)); logAct('edited rent for ' + monthName(x.month)); },
+    onDelete: () => { removeRec('pays', id); logAct('removed rent payment for ' + monthName(x.month)); } });
+}
+function rentCard(full){
+  const s = S.settings;
+  if (!s.rent) return `<div class="card row wrap"><div class="sp"><b>🔑 Renting?</b><div class="sm mut">Add the rent, due day and tenancy dates to track payments and renewal.</div></div><button class="btn sm pri" data-act="editRent">Add details</button></div>`;
+  const r = rentNow(), le = s.leaseEnd ? daysBetween(today(), s.leaseEnd) : null;
+  const st = r.p ? `<span class="badge bd-ok">Paid ${fmtDate(r.p.date)}${r.p.paid && shared() ? ' · ' + esc(who(r.p.paid)) : ''}</span>`
+    : r.days < 0 ? `<span class="badge bd-bad">${-r.days}d overdue</span>` : r.days <= 5 ? `<span class="badge bd-warn">Due in ${r.days}d</span>` : `<span class="badge bd-mut">Due ${fmtDate(r.due)}</span>`;
+  const lease = le === null ? '' : le < 0 ? `<div class="card sm" style="margin:12px 0 0;background:var(--card2)">📄 Tenancy ended ${fmtDate(s.leaseEnd)}. Renew it in writing, or plan the move-out and deposit refund.</div>`
+    : le <= 60 ? `<div class="card sm" style="margin:12px 0 0;background:var(--card2)">📄 Tenancy ends in <b>${le} days</b> (${fmtDate(s.leaseEnd)}). Talk to the landlord about renewal and any rent change now.</div>` : '';
+  if (!full) return `<div class="card row wrap"><div class="sp"><b>🔑 Rent ${rm(s.rent)}</b><div class="sm mut">${monthName(r.m)} · due ${fmtDate(r.due)}</div></div>${r.p ? st : `<button class="btn sm pri" data-act="payRent" data-m="${r.m}">Mark paid</button>`}</div>${lease ? `<div style="margin:-4px 0 12px">${lease}</div>` : ''}`;
+  const pays = S.pays.slice().sort((a,b) => b.month.localeCompare(a.month)).slice(0, 6);
+  const paidYear = S.pays.filter(x => x.month.slice(0,4) === today().slice(0,4)).reduce((a,x) => a + x.amount, 0);
+  return `<div class="card">
+    <div class="row"><div class="sp"><div class="mut sm">Rent · ${monthName(r.m)}</div><div class="b" style="font-size:20px">${rm(s.rent)}</div></div>${st}</div>
+    <div class="row wrap" style="margin-top:12px">${r.p ? `<button class="btn sm" data-act="payRent" data-m="${nextMonth(r.m).slice(0,7)}">Pay ${monthName(nextMonth(r.m).slice(0,7))} early</button>` : `<button class="btn sm pri" data-act="payRent" data-m="${r.m}">Mark ${monthName(r.m)} paid</button>`}<button class="btn sm" data-act="editRent">Details</button></div>
+    ${lease}
+    <div style="margin-top:12px">
+      <div class="kv"><span class="mut">Due every month on</span><span>day ${s.rentDay || 1}</span></div>
+      ${s.leaseStart || s.leaseEnd ? `<div class="kv"><span class="mut">Tenancy</span><span>${s.leaseStart && s.leaseEnd ? fmtDate(s.leaseStart) + ' – ' + fmtDate(s.leaseEnd) : s.leaseEnd ? 'until ' + fmtDate(s.leaseEnd) : 'from ' + fmtDate(s.leaseStart)}</span></div>` : ''}
+      ${s.rentDeposit || s.utilDeposit ? `<div class="kv"><span class="mut">Deposits held by landlord</span><span>${rm(s.rentDeposit + s.utilDeposit)}</span></div>` : ''}
+      <div class="kv"><span class="mut">Rent paid in ${today().slice(0,4)}</span><span>${rm(paidYear)}</span></div>
+      ${s.landlord ? `<div class="kv"><span class="mut">Landlord</span><span>${esc(s.landlord)}</span></div>` : ''}
+    </div></div>
+    ${pays.length ? `<div class="list">${pays.map(x => `<div class="li" data-act="editPay" data-id="${esc(x.id)}"><div class="ic">🔑</div><div class="main"><div class="t">${monthName(x.month)}</div><div class="sm mut t">Paid ${fmtDate(x.date)}${x.paid && shared() ? ' · by ' + esc(who(x.paid)) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}</div>` : ''}`;
+}
+
+/* ---------- recommendations ---------- */
+/* Typical Malaysian household costs. Rough guides only: the form opens so you can enter your real amount. */
+const BILL_SUGG = [
+  {n:'TNB electricity', a:150, f:'monthly', k:/tnb|electric|letrik/i, h:'Usually RM 80–250 a month. Aircond use is the big driver.'},
+  {n:'Water', a:30, f:'monthly', k:/water|air selangor|syabas|\bair\b/i, h:'Usually RM 15–50 a month for a family.'},
+  {n:'Indah Water (sewerage)', a:8, f:'monthly', k:/indah|sewer|iwk/i, h:'RM 8 a month for most homes on the main sewer.'},
+  {n:'Home internet', a:129, f:'monthly', k:/internet|fibre|unifi|time|maxis|wifi/i, h:'RM 89–199 a month for 100–500 Mbps fibre.'},
+  {n:'Cooking gas', a:20, f:'monthly', k:/gas|lpg|petronas/i, h:'A 14 kg tank lasts a family 1–2 months.'},
+  {n:'Maintenance fee & sinking fund', a:250, f:'monthly', t:'own', k:/maint|sinking|strata|jmb|mc\b/i, h:'Strata homes (condo, apartment, gated): about RM 0.25–0.45 per sq ft a month.'},
+  {n:'Cukai pintu (assessment)', a:300, f:'yearly', t:'own', k:/pintu|assessment|taksiran/i, h:'Paid to the local council, usually in two halves (Feb and Aug).'},
+  {n:'Cukai tanah (quit rent)', a:60, f:'yearly', t:'own', k:/tanah|quit/i, h:'Paid to the land office, usually by 31 May.'},
+  {n:'Houseowner / fire insurance', a:150, f:'yearly', t:'own', k:/fire|houseowner|home insur|bomba/i, h:'Banks usually require fire cover while the loan runs.'},
+  {n:'Contents insurance', a:100, f:'yearly', t:'rent', k:/content|householder|insur/i, h:'Covers your own things. The landlord’s policy does not.'},
+  {n:'Repair fund', a:150, f:'monthly', t:'own', k:/repair|sinking fund/i, h:'Set aside a little each month for broken pipes, roof leaks and appliances.'},
+  {n:'Streaming / TV', a:50, f:'monthly', k:/netflix|astro|stream|tv|disney|spotify/i, h:'Netflix, Astro and similar.'}
+];
+const TASK_SUGG = [
+  {n:'Aircond servicing', i:6, k:/aircond|air.?con|a\/c/i},
+  {n:'Change water filter', i:6, k:/filter/i},
+  {n:'Clean drains and gutters', i:6, k:/drain|gutter|longkang/i},
+  {n:'Pest control / termite check', i:12, k:/pest|termite|anai/i},
+  {n:'Check fire extinguisher', i:12, k:/extinguish|fire/i},
+  {n:'Service water heater', i:12, k:/heater/i},
+  {n:'Deep clean kitchen hood', i:3, k:/hood|kitchen/i},
+  {n:'Clean water tank', i:24, t:'own', k:/tank/i},
+  {n:'Check roof and ceiling for leaks', i:12, t:'own', k:/roof|ceiling|leak/i},
+  {n:'Repaint walls', i:60, t:'own', k:/paint/i}
+];
+const fits = x => !x.t || x.t === S.settings.homeType;
+const billSugg = () => BILL_SUGG.filter(x => fits(x) && !S.bills.some(b => x.k.test(b.name)));
+const taskSugg = () => TASK_SUGG.filter(x => fits(x) && !S.tasks.some(t => x.k.test(t.name)));
+function suggList(list, act, sub){
+  if (!list.length) return '';
+  return `<details class="sugg"><summary>💡 Suggested (${list.length}): common ones you have not added</summary><div class="list">${list.map(x => `
+    <div class="li" data-act="${act}" data-n="${esc(x.n)}"><div class="main"><div class="t">${esc(x.n)}</div><div class="sm mut">${sub(x)}</div></div><span class="pill s-idea">＋ Add</span></div>`).join('')}</div></details>`;
+}
+/* Monthly home cost vs income, with simple rules of thumb. */
+function costCard(){
+  const s = S.settings, billsM = S.bills.reduce((a,b) => a + monthly(b), 0);
+  const housing = renting() ? s.rent : s.installment, total = housing + billsM, inc = s.income;
+  const label = renting() ? 'Rent' : 'Loan installment';
+  let body;
+  if (!inc){
+    body = `<div class="tip">Add your household income in <a href="#" data-act="openSettings">Settings</a> to see if this is comfortable.</div>`;
+  } else {
+    const hp = housing / inc * 100, tp = total / inc * 100;
+    const tone = p => p <= 30 ? ['var(--ok)','Comfortable'] : p <= 40 ? ['var(--warn)','Tight'] : ['var(--bad)','High'];
+    const [c2, t2] = tone(tp - 10); // all home costs: comfortable up to 40%
+    const tips = [];
+    if (hp > 30) tips.push(`${label} is <b>${hp.toFixed(0)}%</b> of income. A common guide is 30% or less, which is <b>${rm(inc*0.3)}</b> for you.`);
+    else if (housing) tips.push(`${label} is ${hp.toFixed(0)}% of income: within the 30% guide. Room up to <b>${rm(inc*0.3)}</b>.`);
+    if (tp > 40) tips.push(`All home costs take <b>${tp.toFixed(0)}%</b> of income. Look at the biggest bills first: aircond hours, internet plan, streaming.`);
+    tips.push(`Keep 3–6 months of home costs as a safety fund: about <b>${rm(total*3)}–${rm(total*6)}</b>.`);
+    if (!renting() && !S.bills.some(b => /repair/i.test(b.name))) tips.push('Owners: set aside about RM 100–200 a month for repairs.');
+    if (renting() && s.rentDeposit) tips.push(`Your <b>${rm(s.rentDeposit + s.utilDeposit)}</b> deposit comes back at move-out if the home is in the same condition. Photograph every room now.`);
+    body = `<div class="kv"><span class="mut">Share of income</span><span style="color:${c2};font-weight:600">${t2} · ${tp.toFixed(0)}%</span></div>
+      <div class="meter" title="Home costs vs income"><i style="width:${Math.min(100, tp)}%;background:${c2}"></i><b style="left:40%"></b></div>
+      <div class="sm mut">Line = 40% of income</div>
+      ${tips.map(t => `<div class="tip">• ${t}</div>`).join('')}`;
+  }
+  return `<div class="card">
+    <div class="row"><div class="sp"><div class="mut sm">Monthly home cost</div><div class="b" style="font-size:20px">${rm(total)} / month</div></div><div class="mut sm" style="text-align:right">${rm(total*12)}<br>per year</div></div>
+    <div style="margin-top:10px"><div class="kv"><span class="mut">${label}</span><span>${housing ? rm(housing) : `<a href="#" data-act="${renting() ? 'editRent' : 'openSettings'}">Add</a>`}</span></div>
+    <div class="kv"><span class="mut">Bills</span><span>${rm(billsM)}</span></div></div>
+    ${body}</div>`;
 }
 
 /* ---------- rows ---------- */
@@ -955,18 +1126,18 @@ function editTask(id, preset = {}){
       {k:'interval',label:'Every (months)',type:'number',def:6,half:true},
       {k:'lastDone',label:'Last done',type:'date',half:true},
       {k:'notes',label:'Notes / contractor',type:'textarea'}],
-    values:t||{roomId:preset.roomId||''}, extra: byLine(t),
+    values:t||{roomId:'', ...preset}, extra: byLine(t),
     onSave: o => { o.interval = Math.max(1, Math.round(o.interval)||1); if (t){ stamp(Object.assign(t,o)); logAct('edited task '+t.name); } else { S.tasks.push(fresh(o)); logAct('added task '+o.name); } },
     onDelete: t ? () => { removeRec('tasks', id); logAct('deleted task '+t.name); } : null });
 }
-function editBill(id){
+function editBill(id, preset = {}){
   const b = S.bills.find(x=>x.id===id);
   openForm({ title: b?'Edit bill':'New bill', fields:[
       {k:'name',label:'Bill',req:true,ph:'e.g. TNB electricity'},
       {k:'amount',label:'Amount (RM)',type:'number',half:true},
       {k:'freq',label:'Frequency',type:'select',options:FREQS,half:true},
       {k:'notes',label:'Notes',type:'textarea'}],
-    values:b||{freq:'monthly'}, extra: byLine(b),
+    values:b||{freq:'monthly', ...preset}, extra: (preset.hint ? `<div class="hint" style="margin-top:-6px">${esc(preset.hint)}</div>` : '') + byLine(b),
     onSave: o => { if (b){ stamp(Object.assign(b,o)); logAct('edited bill '+b.name); } else { S.bills.push(fresh(o)); logAct('added bill '+o.name); } },
     onDelete: b ? () => { removeRec('bills', id); logAct('deleted bill '+b.name); } : null });
 }
@@ -1029,6 +1200,11 @@ document.addEventListener('click', e => {
     case 'pull': pull(true); break;
     case 'invite': invite(); break;
     case 'setMe': askName(); break;
+    case 'editRent': editRent(); break;
+    case 'payRent': payRent(el.dataset.m); break;
+    case 'editPay': editPay(id); break;
+    case 'sugBill': { const x = BILL_SUGG.find(y => y.n === el.dataset.n); if (x) editBill(null, {name:x.n, amount:x.a, freq:x.f, hint:'Typical: ' + x.h + ' Change it to your real amount.'}); break; }
+    case 'sugTask': { const x = TASK_SUGG.find(y => y.n === el.dataset.n); if (x) editTask(null, {name:x.n, interval:x.i}); break; }
     case 'openHome': openHome(id || ''); break;
     case 'removeHome': removeHome(id); break;
     case 'copyCode': navigator.clipboard.writeText(setupCode()).then(() => toast('Setup code copied. Your partner pastes it under Add a shared home.'), () => prompt('Copy this setup code:', setupCode())); break;
@@ -1044,11 +1220,11 @@ document.addEventListener('change', e => {
   const t = e.target, k = t.dataset && t.dataset.set, dk = t.dataset && t.dataset.dev;
   if (k){
     let v = t.value.trim();
-    if (k==='budget') v = Math.max(0, num(v));
+    if (k==='budget' || NUM_SETTINGS.includes(k)) v = Math.max(0, num(v));
     if (k==='moveIn' && !isDate(v)) { toast('Pick a valid move-in date', {error:true}); render(); return; }
     if (String(S.settings[k]) === String(v)) return;
     setSetting(k, v);
-    logAct(k==='budget' ? 'set budget to '+rm(v) : k==='moveIn' ? 'changed move-in to '+fmtDate(v) : 'renamed home to '+v);
+    logAct(k==='budget' ? 'set budget to '+rm(v) : k==='moveIn' ? 'changed move-in to '+fmtDate(v) : k==='homeType' ? (v==='rent' ? 'set the home to renting' : 'set the home to owned') : k==='income' ? 'updated household income' : k==='installment' ? 'set loan installment to '+rm(v) : 'renamed home to '+v);
     save();
   } else if (dk==='me'){
     D.me = t.value.trim().slice(0, 30); saveDevice(); render();
