@@ -17,13 +17,15 @@ Single `index.html`, vanilla JS, no build step. Data lives in `localStorage` and
 
 Dashboard card: `GET <exec-url>?action=summary`.
 
-## Share with your partner
-1. On your phone: Settings → People → type your name.
-2. Tap **Invite partner** and send the link (WhatsApp etc.).
-3. Partner opens it, types their name, taps Save. Done: same home, synced.
+## Share with your partner (like Ledger's shared ledgers)
+1. Settings → **Shared homes** → type your name.
+2. Tap **Invite partner** (link) or **Copy setup code**, and send it.
+3. Partner opens the link, or pastes the code under *Add a shared home*. A blank phone just joins; a phone that already has its own home keeps it and adds the shared one.
 
-Every add, edit, status move and ✓ Done is saved with who did it. Home shows **Recent activity**; tap *See all* for the full feed (latest 300). The `log` tab in the Sheet keeps it too.
-The invite link holds your sync URL, so only send it to people you trust.
+- Switch homes by tapping the title on Home (▾). A shared home shows a 👫 badge.
+- Each item can have **Paid by** (it fills in your name when you move it to Ordered). Home shows **Who paid what** and who owes whom if you split equally.
+- Every change is saved with who did it: see **Recent activity** on Home, or the full feed (latest 300). The Sheet keeps it in the `log` tab.
+- The link and code hold your sync URL, so only send them to people you trust.
 
 ## Safety nets
 - Every change is saved locally first; a failed sync shows a red toast and retries on the next change / when back online.
