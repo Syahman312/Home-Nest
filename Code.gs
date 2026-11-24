@@ -27,6 +27,7 @@ const COLLECTIONS = {
   items: ['id', 'roomId', 'name', 'category', 'priority', 'status', 'est', 'actual', 'shop', 'link', 'date', 'warranty', 'notes', 'paid', 'by', 'eb', 'u'],
   tasks: ['id', 'name', 'roomId', 'interval', 'lastDone', 'doneBy', 'notes', 'by', 'eb', 'u'],
   bills: ['id', 'name', 'amount', 'freq', 'notes', 'by', 'eb', 'u'],
+  exps: ['id', 'date', 'cat', 'amount', 'note', 'paid', 'by', 'eb', 'u'], // house expenses (groceries, repairs…)
   pays: ['id', 'month', 'amount', 'date', 'paid', 'by', 'eb', 'u'], // rent payments, one per month
   log: ['id', 'at', 'by', 'text', 'u'] // activity: who did what (newest LOG_MAX kept)
 };
@@ -211,6 +212,9 @@ function summary_(s) {
     overdueTasks: overdue,
     homeType: (s.settings || {}).homeType || 'own',
     rent: Number((s.settings || {}).rent || 0),
+    monthSpent: (s.exps || []).filter(x => String(x.date).slice(0, 7) === today.slice(0, 7)).reduce((a, x) => a + Number(x.amount || 0), 0)
+      + (s.pays || []).filter(p => p.month === today.slice(0, 7)).reduce((a, p) => a + Number(p.amount || 0), 0),
+    monthBudget: Object.keys((s.settings || {}).budgets || {}).reduce((a, k) => a + Number(s.settings.budgets[k] || 0), 0),
     rentPaidThisMonth: (s.pays || []).some(p => p.month === today.slice(0, 7)),
     updatedAt: s.updatedAt
   };

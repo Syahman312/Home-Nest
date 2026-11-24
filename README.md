@@ -33,6 +33,11 @@ Dashboard card: `GET <exec-url>?action=summary`.
 - Upkeep → **Home cost** adds rent or installment plus bills, compares them with income (30% / 40% guides) and gives tips.
 - **💡 Suggested** lists common Malaysian bills (TNB, water, Indah Water, internet, cukai pintu…) and upkeep tasks you have not added. Amounts are rough guides; the form opens so you enter your real one.
 
+## House budget
+- New **Budget** tab: set a monthly budget per category (rent/loan, utilities, groceries, repairs…). *Set a budget* fills in a suggestion from your rent or loan, bills and income.
+- Record real house expenses with + (amount, category, note, who paid). Rent marked paid counts automatically.
+- See spent vs budget per category, what is left and about how much per day. Flip months with ‹ ›. Home shows a small budget card.
+
 ## Safety nets
 - Every change is saved locally first; a failed sync shows a red toast and retries on the next change / when back online.
 - **Export JSON backup** (Settings). In the iPhone home-screen app it opens the share sheet → *Save to Files*.
