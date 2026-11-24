@@ -38,6 +38,17 @@ Dashboard card: `GET <exec-url>?action=summary`.
 - Record real house expenses with + (amount, category, note, who paid). Rent marked paid counts automatically.
 - See spent vs budget per category, what is left and about how much per day. Flip months with ‹ ›. Home shows a small budget card.
 
+## Pay from the right account (Ledger link)
+
+Settings › 💳 Ledger (wallet) link: paste your Ledger Web App URL and its `VIEW_KEY`. Nest reads your Ledger (read-only) and, for rent, bills and house expenses, suggests which account to pay from:
+
+1. the account a Ledger recurring item already uses for it (e.g. "House rent" → Maybank),
+2. the account you usually pay that thing with,
+3. the card with the best cashback left this statement cycle for that category,
+4. never an account without enough balance or credit.
+
+Expenses and rent payments remember the account ("Paid from"). The link and key stay on your phone only; they are never written to the shared Sheet, so each partner links their own Ledger. Ledger is refreshed every 15 minutes while Nest is open.
+
 ## Safety nets
 - Every change is saved locally first; a failed sync shows a red toast and retries on the next change / when back online.
 - **Export JSON backup** (Settings). In the iPhone home-screen app it opens the share sheet → *Save to Files*.

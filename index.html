@@ -358,9 +358,9 @@ function normalize(s){
     id:str(x.id), name:str(x.name), amount:num(x.amount),
     freq:FREQS.some(f => f.k === x.freq) ? x.freq : 'monthly', notes:str(x.notes), by:str(x.by), eb:str(x.eb), u:num(x.u) }));
   out.pays = (s.pays || []).filter(x => x && x.id).map(x => ({ id:str(x.id), month:/^\d{4}-\d{2}$/.test(x.month) ? x.month : '', amount:num(x.amount),
-    date:isDate(x.date) ? x.date : '', paid:str(x.paid), by:str(x.by), eb:str(x.eb), u:num(x.u) })).filter(x => x.month);
+    date:isDate(x.date) ? x.date : '', paid:str(x.paid), acc:str(x.acc), by:str(x.by), eb:str(x.eb), u:num(x.u) })).filter(x => x.month);
   out.exps = (s.exps || []).filter(x => x && x.id).map(x => ({ id:str(x.id), date:isDate(x.date) ? x.date : '', cat:HCATS.some(c => c.k === x.cat) ? x.cat : 'other',
-    amount:num(x.amount), note:str(x.note), paid:str(x.paid), by:str(x.by), eb:str(x.eb), u:num(x.u) })).filter(x => x.date);
+    amount:num(x.amount), note:str(x.note), paid:str(x.paid), acc:str(x.acc), by:str(x.by), eb:str(x.eb), u:num(x.u) })).filter(x => x.date);
   out.log = (s.log || []).filter(x => x && x.id && x.text).map(x => ({ id:str(x.id), at:num(x.at), by:str(x.by), text:str(x.text), u:num(x.u) }));
   out.deleted = {};
   Object.entries(s.deleted || {}).forEach(([id, t]) => { if (num(t)) out.deleted[id] = num(t); });
@@ -641,7 +641,7 @@ V.upkeep = () => {
   ${S.bills.length?`<div class="list">${S.bills.map(b=>`
     <div class="li" data-act="editBill" data-id="${esc(b.id)}">
       <div class="ic">🧾</div>
-      <div class="main"><div class="t">${esc(b.name)}</div><div class="sm mut t">${FREQS.find(f=>f.k===b.freq)?.l||''}${b.notes?' · '+esc(b.notes):''}</div></div>
+      <div class="main"><div class="t">${esc(b.name)}</div><div class="sm mut t">${FREQS.find(f=>f.k===b.freq)?.l||''}${(p => p ? ' · 💳 ' + esc(p.a.name) : '')(lgBest({kind:'bill', name:b.name, amount:b.amount, cat:billCat(b.name)}))}${b.notes?' · '+esc(b.notes):''}</div></div>
       <div class="b">${rm(b.amount)}</div>
     </div>`).join('')}</div>`:''}
   ${suggList(billSugg(), 'sugBill', x => 'About ' + rm(x.a) + (x.f === 'yearly' ? ' a year' : ' a month') + ' · ' + esc(x.h))}
@@ -682,6 +682,7 @@ V.settings = () => {
     <div class="f"><label for="addHome">Add a shared home</label><input id="addHome" placeholder="Paste the invite link or setup code" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
     <button class="btn sm" data-act="addHome">Add &amp; open</button>
   </div>
+  ${ledgerCard()}
   <h2>Sync (Google Sheets)</h2>
   <div class="card">
     <div class="row" style="margin-bottom:14px">${(([c,t])=>`<span class="pillb ${c}"><span class="dot"></span>${esc(t)}</span>`)(pillState())}<span class="sp"></span>${D.syncUrl?'<button class="btn sm pri" data-act="pull">Sync now</button>':''}</div>
@@ -869,7 +870,8 @@ function editRent(){
 function payRent(m){
   const id = 'rent-' + m, old = S.pays.find(x => x.id === id);
   if (old) return toast(monthName(m) + ' is already marked paid');
-  S.pays.push(fresh({ id, month:m, amount:S.settings.rent, date:today(), paid:D.me || '' }));
+  const via = lgBest({kind:'rent', amount:S.settings.rent, cat:'housing'});
+  S.pays.push(fresh({ id, month:m, amount:S.settings.rent, date:today(), paid:D.me || '', acc:via ? via.a.name : '' }));
   delete S.deleted[id];
   const lid = logAct('paid rent for ' + monthName(m)); save();
   toast('Rent for ' + monthName(m) + ' marked paid', {undo: () => { removeRec('pays', id); unlog(lid); save(); }});
@@ -879,7 +881,8 @@ function editPay(id){
   openForm({ title:'Rent · ' + monthName(x.month), fields:[
       {k:'amount',label:'Amount (RM)',type:'number',half:true},
       {k:'date',label:'Paid on',type:'date',half:true},
-      ...(shared() ? [{k:'paid',label:'Paid by',type:'select',options:[{k:'',l:'Not marked'}, ...people().map(p=>({k:p,l:p}))]}] : [])],
+      ...(shared() ? [{k:'paid',label:'Paid by',type:'select',options:[{k:'',l:'Not marked'}, ...people().map(p=>({k:p,l:p}))]}] : []),
+      ...accField({kind:'rent', cat:'housing', amount:x.amount})],
     values:x, extra:byLine(x),
     onSave: o => { stamp(Object.assign(x, o)); logAct('edited rent for ' + monthName(x.month)); },
     onDelete: () => { removeRec('pays', id); logAct('removed rent payment for ' + monthName(x.month)); } });
@@ -898,6 +901,7 @@ function rentCard(full){
   return `<div class="card">
     <div class="row"><div class="sp"><div class="mut sm">Rent · ${monthName(r.m)}</div><div class="b" style="font-size:20px">${rm(s.rent)}</div></div>${st}</div>
     <div class="row wrap" style="margin-top:12px">${r.p ? `<button class="btn sm" data-act="payRent" data-m="${nextMonth(r.m).slice(0,7)}">Pay ${monthName(nextMonth(r.m).slice(0,7))} early</button>` : `<button class="btn sm pri" data-act="payRent" data-m="${r.m}">Mark ${monthName(r.m)} paid</button>`}<button class="btn sm" data-act="editRent">Details</button></div>
+    ${!r.p ? payHint({kind:'rent', cat:'housing', amount:s.rent}) : ''}
     ${lease}
     <div style="margin-top:12px">
       <div class="kv"><span class="mut">Due every month on</span><span>day ${s.rentDay || 1}</span></div>
@@ -906,7 +910,7 @@ function rentCard(full){
       <div class="kv"><span class="mut">Rent paid in ${today().slice(0,4)}</span><span>${rm(paidYear)}</span></div>
       ${s.landlord ? `<div class="kv"><span class="mut">Landlord</span><span>${esc(s.landlord)}</span></div>` : ''}
     </div></div>
-    ${pays.length ? `<div class="list">${pays.map(x => `<div class="li" data-act="editPay" data-id="${esc(x.id)}"><div class="ic">🔑</div><div class="main"><div class="t">${monthName(x.month)}</div><div class="sm mut t">Paid ${fmtDate(x.date)}${x.paid && shared() ? ' · by ' + esc(who(x.paid)) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}</div>` : ''}`;
+    ${pays.length ? `<div class="list">${pays.map(x => `<div class="li" data-act="editPay" data-id="${esc(x.id)}"><div class="ic">🔑</div><div class="main"><div class="t">${monthName(x.month)}</div><div class="sm mut t">Paid ${fmtDate(x.date)}${x.paid && shared() ? ' · by ' + esc(who(x.paid)) : ''}${x.acc ? ' · ' + esc(x.acc) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}</div>` : ''}`;
 }
 
 /* ---------- recommendations ---------- */
@@ -984,6 +988,7 @@ function spentIn(m){
   S.pays.filter(x => x.month === m).forEach(x => { by.housing = (by.housing||0) + x.amount; });
   return by;
 }
+const billCat = n => /internet|fibre|unifi|wifi|astro|netflix|stream|tv|disney|spotify/i.test(n) ? 'internet' : /insur|takaful|cukai|assessment|quit|pintu|tanah/i.test(n) ? 'insurance' : /maint|sinking|repair/i.test(n) ? 'repairs' : 'utilities';
 const sum = o => Object.values(o).reduce((a,b) => a + b, 0);
 /* A starting budget from what Nest already knows: rent / loan, bills, income. */
 function suggestBudget(){
@@ -1018,9 +1023,10 @@ function editExp(id){
       {k:'date',label:'Date',type:'date',half:true},
       {k:'cat',label:'Category',type:'select',options:HCATS.map(c => ({k:c.k, l:c.i + ' ' + c.l}))},
       {k:'note',label:'What for',ph:'e.g. Lotus’s weekly shop, plumber'},
-      ...(shared() ? [{k:'paid',label:'Paid by',type:'select',options:[{k:'',l:'Not marked'}, ...people().map(p=>({k:p,l:p}))]}] : [])],
-    values: x || {date: bMonth && bMonth !== ym(today()) ? bMonth + '-01' : today(), cat:'groceries', paid:D.me || ''},
-    extra: byLine(x),
+      ...(shared() ? [{k:'paid',label:'Paid by',type:'select',options:[{k:'',l:'Not marked'}, ...people().map(p=>({k:p,l:p}))]}] : []),
+      ...accField({cat:x ? x.cat : 'groceries', name:x ? x.note : '', amount:x ? x.amount : 0})],
+    values: x || {date: bMonth && bMonth !== ym(today()) ? bMonth + '-01' : today(), cat:'groceries', paid:D.me || '', acc:(lgBest({cat:'groceries'}) || {a:{}}).a.name || ''},
+    extra: '<div id="payHint">' + (x ? '' : payHint({cat:'groceries'})) + '</div>' + byLine(x),
     onSave: o => {
       if (!isDate(o.date)) o.date = today();
       const t = `${rm(o.amount)} on ${hcat(o.cat).l}${o.note ? ' (' + o.note + ')' : ''}`;
@@ -1071,11 +1077,119 @@ V.budget = () => {
   <h2>Expenses<span class="sp"></span><button data-act="addExp">＋ Add</button></h2>
   ${list.length || rents.length ? `<div class="list">
     ${rents.map(x => `<div class="li" data-act="editPay" data-id="${esc(x.id)}"><div class="ic">🔑</div><div class="main"><div class="t">Rent</div><div class="sm mut t">${fmtDate(x.date)}${x.paid && shared() ? ' · ' + esc(who(x.paid)) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}
-    ${list.map(x => `<div class="li" data-act="editExp" data-id="${esc(x.id)}"><div class="ic">${hcat(x.cat).i}</div><div class="main"><div class="t">${esc(x.note || hcat(x.cat).l)}</div><div class="sm mut t">${fmtDate(x.date)} · ${esc(hcat(x.cat).l)}${x.paid && shared() ? ' · ' + esc(who(x.paid)) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}
+    ${list.map(x => `<div class="li" data-act="editExp" data-id="${esc(x.id)}"><div class="ic">${hcat(x.cat).i}</div><div class="main"><div class="t">${esc(x.note || hcat(x.cat).l)}</div><div class="sm mut t">${fmtDate(x.date)} · ${esc(hcat(x.cat).l)}${x.paid && shared() ? ' · ' + esc(who(x.paid)) : ''}${x.acc ? ' · ' + esc(x.acc) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}
   </div>` : `<div class="card empty">No house expenses in ${monthName(m)}.<br><span class="sm">Record groceries, repairs, cleaning, supplies… Tap + to add.</span></div>`}
   <div class="sm mut" style="margin:4px">Rent marked paid in Upkeep counts here automatically. Shopping list items have their own setup budget on Home.</div>
   </div></div>`;
 };
+
+/* ---------- Ledger link: pick which account to pay from ----------
+   Reads your Ledger (wallet) with its read-only VIEW_KEY. The link and the copy stay on this phone
+   (all homes), never in the shared Sheet: your partner links their own Ledger on their phone. */
+const LEDGER_LINK = 'nest.ledgerLink', LEDGER_CACHE = 'nest.ledgerCache';
+let LG = readJSON(LEDGER_CACHE), lgBusy = false, lgErr = '';
+const lgLink = () => readJSON(LEDGER_LINK) || {};
+const lgOn = () => !!(lgLink().url && LG && LG.accs);
+/* Ledger balance: opening amount (minus for cards / loans) plus every transaction; a transfer moves money from acc to `to`. */
+function lgTrim(d){
+  const L = ['card','loan','borrow','bnpl'], tx = d.tx || [], cut = iso(new Date(Date.now() - 200 * 864e5));
+  const bal = {}; (d.accs || []).forEach(a => { bal[a.id] = L.includes(a.t) ? -(+a.open || 0) : (+a.open || 0); });
+  tx.forEach(t => {
+    const v = +t.amt || 0;
+    if (t.tr){ if (t.acc in bal) bal[t.acc] -= v; if (t.to in bal && t.to !== t.acc) bal[t.to] += v; }
+    else if (t.acc in bal) bal[t.acc] += v;
+  });
+  return { at:now(),
+    accs:(d.accs || []).filter(a => ['bank','ewallet','cash','card'].includes(a.t) && !a.dCls && !a.virt)
+      .map(a => ({ id:a.id, name:String(a.name || ''), t:a.t, i:a.i || '', bal:Math.round((bal[a.id] || 0) * 100) / 100, lim:+a.lim || 0, stmt:+a.stmt || 0, cb:a.cb || null })),
+    rec:(d.rec || []).filter(r => r && r.on !== false && r.acc).map(r => ({ name:String(r.name || ''), acc:r.acc, cat:r.cat || '' })),
+    cats:(d.cats || []).map(c => ({ id:c.id, name:String(c.name || ''), p:c.p || '' })),
+    tx:tx.filter(t => !t.tr && +t.amt < 0 && t.date >= cut).map(t => ({ date:t.date, desc:String(t.desc || ''), amt:+t.amt, acc:t.acc, cat:t.cat || '' })) };
+}
+async function lgFetch(manual){
+  const l = lgLink(); if (!l.url || lgBusy) return;
+  lgBusy = true; lgErr = '';
+  const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 25000);
+  try {
+    const r = await fetch(l.url, {method:'POST', body:JSON.stringify({key:l.key, action:'read'}), signal:ctrl.signal});
+    const j = JSON.parse(await r.text());
+    if (j.error || !j.data) throw new Error(j.error || 'no data');
+    LG = lgTrim(j.data); writeJSON(LEDGER_CACHE, LG);
+    if (manual) toast('Ledger linked · ' + LG.accs.length + ' accounts');
+  } catch(e){
+    lgErr = e.name === 'AbortError' ? 'timed out' : /JSON/.test(e.message) ? 'that URL did not return Ledger data' : e.message;
+    if (manual) toast('Could not read Ledger: ' + lgErr, {error:true});
+  } finally { clearTimeout(timer); lgBusy = false; softRender(); }
+}
+const lgAcc = id => (LG && LG.accs || []).find(a => a.id === id);
+const lgAvail = a => a.t === 'card' ? (a.lim ? a.lim + a.bal : Infinity) : a.bal;
+/* Ledger categories that fit a Nest budget category */
+const LG_CAT_RE = { housing:/rent|sewa|housing|mortgage|home ?loan|install/i, utilities:/utilit|electric|tnb|water|bill/i, internet:/internet|phone|telco|wifi|stream|tv|subscri/i,
+  groceries:/grocer|market|food|makan/i, supplies:/household|supplies|home/i, repairs:/repair|maint|home/i, furnish:/furnit|home|shopping/i,
+  help:/clean|maid|help/i, insurance:/insur|takaful|tax|cukai/i, other:/^$/ };
+const lgCatIds = k => (LG.cats || []).filter(c => LG_CAT_RE[k] && LG_CAT_RE[k].test(c.name)).map(c => c.id);
+const STOP = new Set(['the','and','for','bill','bills','fee','fees','monthly','yearly','payment','home','house','my','our']);
+const words = t => String(t || '').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !STOP.has(w));
+/* Cashback rate a card gives on these Ledger categories now, after this statement cycle's caps. */
+function lgCashback(a, catIds){
+  const c = a.cb; if (!c || !catIds.length) return 0;
+  const t = today(), sd = a.stmt;
+  let from = t.slice(0, 8) + '01';
+  if (sd){ const d = parseD(t); let e = new Date(d.getFullYear(), d.getMonth(), Math.min(sd, lastDay(ym(t)))); if (d > e) e = new Date(d.getFullYear(), d.getMonth() + 1, sd); const f = new Date(e.getFullYear(), e.getMonth() - 1, sd + 1); from = iso(f); }
+  const used = (LG.tx || []).filter(x => x.acc === a.id && x.date >= from);
+  const main = id => { const k = (LG.cats || []).find(x => x.id === id); return k && k.p ? k.p : id; };
+  for (const r of (c.rules || [])){
+    const rc = r.cats || [];
+    if (!catIds.some(id => rc.includes(id) || rc.includes(main(id)))) continue;
+    const sp = used.filter(x => rc.includes(x.cat) || rc.includes(main(x.cat))).reduce((s, x) => s - x.amt, 0);
+    const earned = sp * (+r.rate || 0) / 100;
+    return (+r.cap && earned >= +r.cap) ? (+c.base || 0) : (+r.rate || 0);
+  }
+  return +c.base || 0;
+}
+/* Rank accounts for a payment. kind: rent | bill | exp */
+function payWith({name = '', cat = 'other', amount = 0, kind = 'exp'}){
+  if (!lgOn()) return [];
+  const w = kind === 'rent' ? ['rent', 'sewa', ...words(S.settings.landlord)] : words(name);
+  const catIds = lgCatIds(cat), since = iso(new Date(Date.now() - 120 * 864e5));
+  return LG.accs.map(a => {
+    let score = 0, why = '';
+    const rec = LG.rec.find(r => r.acc === a.id && w.some(x => r.name.toLowerCase().includes(x)));
+    if (rec){ score += 100; why = `Ledger pays “${rec.name}” from it`; }
+    const hist = LG.tx.filter(t => t.acc === a.id && t.date >= since && (w.length ? w.some(x => t.desc.toLowerCase().includes(x)) : false)).length;
+    if (hist){ score += Math.min(50, hist * 12); if (!why) why = `you paid ${name || 'this'} with it ${hist}× lately`; }
+    const catUse = LG.tx.filter(t => t.acc === a.id && t.date >= since && catIds.includes(t.cat)).length;
+    if (catUse){ score += Math.min(20, catUse * 3); if (!why) why = `you use it most for this kind of spending`; }
+    if (a.t === 'card' && kind !== 'rent'){
+      const cb = lgCashback(a, catIds.length ? catIds : []);
+      if (cb > 0){ score += cb * 8; if (!why || cb >= 3) why = `${cb}% cashback${catIds.length ? '' : ' (base rate)'}`; }
+    }
+    if (kind === 'rent' && a.t === 'bank') score += 6;
+    if (a.t === 'cash') score += kind === 'exp' && amount <= 100 ? 2 : -30;
+    const av = lgAvail(a), short = amount > 0 && av < amount;
+    if (short){ score -= 200; why = `only ${rm(av)} available`; }
+    else if (!why) why = a.t === 'card' ? `${rm(av)} credit available` : `${rm(av)} balance`;
+    return { a, score, why, short };
+  }).sort((x, y) => y.score - x.score || lgAvail(y.a) - lgAvail(x.a));
+}
+const lgBest = o => { const r = payWith(o); return r.length && !r[0].short ? r[0] : null; };
+function payHint(o){
+  const b = lgBest(o); if (!b) return lgOn() && o.amount ? '<div class="hint">💳 No Ledger account has enough for this. Top up first.</div>' : '';
+  return `<div class="hint">💳 Pay from <b style="color:var(--tx)">${esc(b.a.i)} ${esc(b.a.name)}</b> · ${esc(b.why)}</div>`;
+}
+const accField = (o, cur) => lgOn() ? [{k:'acc', label:'Paid from (Ledger)', type:'select', options:[{k:'',l:'Not set'}, ...payWith(o).map(r => ({k:r.a.name, l:`${r.a.i} ${r.a.name} · ${r.a.t === 'card' ? 'credit ' : ''}${rm(lgAvail(r.a) === Infinity ? 0 : lgAvail(r.a))}`}))]}] : [];
+function ledgerCard(){
+  const l = lgLink();
+  return `<h2>💳 Ledger (wallet) link</h2>
+  <div class="card">
+    <div class="sm mut" style="margin-bottom:12px">Link your Ledger app so Nest suggests which account to pay from: the one Ledger already uses for that bill, the card with the best cashback, and only accounts with enough money.</div>
+    <div class="f"><label for="lgUrl">Ledger Web App URL</label><input id="lgUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(l.url || '')}"></div>
+    <div class="f"><label for="lgKey">Ledger VIEW_KEY (read-only)</label><input id="lgKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(l.key || '')}"></div>
+    <div class="row wrap"><button class="btn sm pri" data-act="lgSave">${l.url ? 'Save &amp; refresh' : 'Link Ledger'}</button>${l.url ? '<button class="btn sm dan" data-act="lgUnlink">Unlink</button>' : ''}<span class="sp"></span><span class="sm mut">${lgBusy ? 'Reading…' : lgErr ? '<span style="color:var(--bad)">' + esc(lgErr) + '</span>' : lgOn() ? `${LG.accs.length} accounts · ${ago(LG.at)}` : ''}</span></div>
+    ${lgOn() ? `<div class="list" style="margin:12px 0 0">${LG.accs.map(a => `<div class="li" style="cursor:default"><div class="ic">${esc(a.i || (a.t === 'card' ? '💳' : a.t === 'ewallet' ? '📱' : a.t === 'cash' ? '💵' : '🏦'))}</div><div class="main"><div class="t">${esc(a.name)}</div><div class="sm mut">${a.t === 'card' ? 'Card' + (a.cb ? ' · cashback' : '') : a.t === 'ewallet' ? 'E-wallet' : a.t === 'cash' ? 'Cash' : 'Bank'}</div></div><div class="b">${a.t === 'card' ? (a.lim ? rm(lgAvail(a)) + ' <span class="sm mut">left</span>' : rm(-a.bal) + ' <span class="sm mut">owed</span>') : rm(a.bal)}</div></div>`).join('')}</div>` : ''}
+    <div class="hint" style="margin:10px 2px 0">In Ledger the URL is under Settings › Google Sheet sync, and VIEW_KEY is in your ledger-sync script. Nest only reads. The key stays on this phone and is never put in the shared Sheet.</div>
+  </div>`;
+}
 
 /* ---------- rows ---------- */
 function itemRow(i, showRoom){
@@ -1187,6 +1301,15 @@ function closeSheet(fromPop){
 window.addEventListener('popstate', () => closeSheet(true));
 $('scrim').addEventListener('click', e => { if (e.target.id==='scrim') closeSheet(); });
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeSheet(); });
+/* Expense form: re-pick the account as amount / category / note change */
+$('sheet').addEventListener('input', e => {
+  const f = $('frm'), h = $('payHint'); if (!f || !h || !f.elements.cat || !f.elements.acc || !lgOn()) return;
+  if (!['amount','cat','note'].includes(e.target.name)) return;
+  const o = {cat:f.elements.cat.value, name:f.elements.note.value, amount:num(f.elements.amount.value)};
+  h.innerHTML = payHint(o);
+  const b = lgBest(o); if (b && !f.elements.acc.dataset.touched) f.elements.acc.value = b.a.name;
+});
+$('sheet').addEventListener('change', e => { if (e.target.name === 'acc') e.target.dataset.touched = 1; });
 /* Keep the focused field visible above the keyboard */
 $('sheet').addEventListener('focusin', e => {
   if (!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
@@ -1258,7 +1381,7 @@ function editBill(id, preset = {}){
       {k:'amount',label:'Amount (RM)',type:'number',half:true},
       {k:'freq',label:'Frequency',type:'select',options:FREQS,half:true},
       {k:'notes',label:'Notes',type:'textarea'}],
-    values:b||{freq:'monthly', ...preset}, extra: (preset.hint ? `<div class="hint" style="margin-top:-6px">${esc(preset.hint)}</div>` : '') + byLine(b),
+    values:b||{freq:'monthly', ...preset}, extra: (b ? payHint({kind:'bill', name:b.name, amount:b.amount, cat:billCat(b.name)}) : '') + (preset.hint ? `<div class="hint" style="margin-top:-6px">${esc(preset.hint)}</div>` : '') + byLine(b),
     onSave: o => { if (b){ stamp(Object.assign(b,o)); logAct('edited bill '+b.name); } else { S.bills.push(fresh(o)); logAct('added bill '+o.name); } },
     onDelete: b ? () => { removeRec('bills', id); logAct('deleted bill '+b.name); } : null });
 }
@@ -1322,6 +1445,11 @@ document.addEventListener('click', e => {
     case 'invite': invite(); break;
     case 'setMe': askName(); break;
     case 'editRent': editRent(); break;
+    case 'lgSave': {
+      const url = $('lgUrl').value.trim(), key = $('lgKey').value.trim();
+      if (!okUrl(url) || !key){ toast('Enter the Ledger Web App URL and VIEW_KEY', {error:true}); break; }
+      writeJSON(LEDGER_LINK, {url, key}); lgFetch(true); render(); break; }
+    case 'lgUnlink': if (confirm('Unlink Ledger from this phone?')){ try { localStorage.removeItem(LEDGER_LINK); localStorage.removeItem(LEDGER_CACHE); } catch(e){} LG = null; lgErr = ''; render(); } break;
     case 'addExp': editExp(); break;
     case 'editExp': editExp(id); break;
     case 'editBudget': editBudget(); break;
@@ -1466,7 +1594,7 @@ async function pull(manual){
   if (needPush || syncAgain){ syncAgain = false; sync(manual); }
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState==='visible'){ if (now() - lastPull > 20000) pull(false); render(); }
+  if (document.visibilityState==='visible'){ if (now() - lastPull > 20000) pull(false); if (lgLink().url && LG && now() - LG.at > 15 * 6e4) lgFetch(false); render(); }
   else if (syncTimer && D.syncUrl){ sync(false); } // leaving the app: flush pending edits now
 });
 window.addEventListener('online', () => { pill(); if (D.syncUrl) sync(false); });
@@ -1521,6 +1649,7 @@ window.addEventListener('unhandledrejection', e => toast('Something went wrong: 
 /* ---------- start ---------- */
 render();
 pill();
+if (lgLink().url && (!LG || now() - LG.at > 15 * 6e4)) lgFetch(false);
 if (D.joined){ delete D.joined; saveDevice(); logAct('joined Nest'); save(); toast('Joined. Loading your shared home…'); }
 if (!handleJoin() && D.syncUrl) pull(false);
 addEventListener('hashchange', () => { if (handleJoin()) render(); });

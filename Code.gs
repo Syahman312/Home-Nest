@@ -27,8 +27,8 @@ const COLLECTIONS = {
   items: ['id', 'roomId', 'name', 'category', 'priority', 'status', 'est', 'actual', 'shop', 'link', 'date', 'warranty', 'notes', 'paid', 'by', 'eb', 'u'],
   tasks: ['id', 'name', 'roomId', 'interval', 'lastDone', 'doneBy', 'notes', 'by', 'eb', 'u'],
   bills: ['id', 'name', 'amount', 'freq', 'notes', 'by', 'eb', 'u'],
-  exps: ['id', 'date', 'cat', 'amount', 'note', 'paid', 'by', 'eb', 'u'], // house expenses (groceries, repairs…)
-  pays: ['id', 'month', 'amount', 'date', 'paid', 'by', 'eb', 'u'], // rent payments, one per month
+  exps: ['id', 'date', 'cat', 'amount', 'note', 'paid', 'acc', 'by', 'eb', 'u'], // house expenses (groceries, repairs…)
+  pays: ['id', 'month', 'amount', 'date', 'paid', 'acc', 'by', 'eb', 'u'], // rent payments, one per month
   log: ['id', 'at', 'by', 'text', 'u'] // activity: who did what (newest LOG_MAX kept)
 };
 const NUMERIC = ['est', 'actual', 'interval', 'amount', 'at', 'u'];
