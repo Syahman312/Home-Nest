@@ -16,18 +16,21 @@
  *   POST {action:'save', data}  (sent as text/plain) → { ok, updatedAt, data }
  *
  * Sync: last-write-wins *per record*. Each row has `u` (ms of its last edit).
+ * `by` / `eb` = who added / last edited a row; the `log` tab is the shared activity feed.
  * Deleted ids are kept in the `_deleted` tab so deletions reach every device.
  * A save merges the incoming state with the Sheet and returns the merged result,
  * so a device that was offline never overwrites newer edits made elsewhere.
  */
 
 const COLLECTIONS = {
-  rooms: ['id', 'name', 'icon', 'u'],
-  items: ['id', 'roomId', 'name', 'category', 'priority', 'status', 'est', 'actual', 'shop', 'link', 'date', 'warranty', 'notes', 'u'],
-  tasks: ['id', 'name', 'roomId', 'interval', 'lastDone', 'notes', 'u'],
-  bills: ['id', 'name', 'amount', 'freq', 'notes', 'u']
+  rooms: ['id', 'name', 'icon', 'by', 'eb', 'u'],
+  items: ['id', 'roomId', 'name', 'category', 'priority', 'status', 'est', 'actual', 'shop', 'link', 'date', 'warranty', 'notes', 'by', 'eb', 'u'],
+  tasks: ['id', 'name', 'roomId', 'interval', 'lastDone', 'doneBy', 'notes', 'by', 'eb', 'u'],
+  bills: ['id', 'name', 'amount', 'freq', 'notes', 'by', 'eb', 'u'],
+  log: ['id', 'at', 'by', 'text', 'u'] // activity: who did what (newest LOG_MAX kept)
 };
-const NUMERIC = ['est', 'actual', 'interval', 'amount', 'u'];
+const NUMERIC = ['est', 'actual', 'interval', 'amount', 'at', 'u'];
+const LOG_MAX = 300;
 const TZ = 'Asia/Kuala_Lumpur';
 const TOMBSTONE_DAYS = 400;
 
@@ -80,6 +83,7 @@ function mergeStates_(a, b) {
     });
     out[c] = order.map(id => m[id]).filter(r => !(out.deleted[r.id] >= n(r.u)));
   });
+  out.log = out.log.slice().sort((x, y) => n(y.at) - n(x.at) || (x.id < y.id ? -1 : 1)).slice(0, LOG_MAX);
   const bWins = n(b.settingsAt) >= n(a.settingsAt);
   out.settings = Object.assign({}, bWins ? (b.settings || {}) : (a.settings || {}));
   delete out.settings.syncUrl; // device-specific, never stored centrally

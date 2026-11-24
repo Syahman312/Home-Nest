@@ -17,6 +17,14 @@ Single `index.html`, vanilla JS, no build step. Data lives in `localStorage` and
 
 Dashboard card: `GET <exec-url>?action=summary`.
 
+## Share with your partner
+1. On your phone: Settings → People → type your name.
+2. Tap **Invite partner** and send the link (WhatsApp etc.).
+3. Partner opens it, types their name, taps Save. Done: same home, synced.
+
+Every add, edit, status move and ✓ Done is saved with who did it. Home shows **Recent activity**; tap *See all* for the full feed (latest 300). The `log` tab in the Sheet keeps it too.
+The invite link holds your sync URL, so only send it to people you trust.
+
 ## Safety nets
 - Every change is saved locally first; a failed sync shows a red toast and retries on the next change / when back online.
 - **Export JSON backup** (Settings). In the iPhone home-screen app it opens the share sheet → *Save to Files*.
