@@ -69,6 +69,8 @@ header .back{background:none;border:0;color:var(--acc);font-size:15px;padding:6p
 .diag .r b{font-weight:600;text-align:right}
 .diag .y{color:var(--ok)} .diag .n{color:var(--bad)}
 main{padding:16px var(--gut-r) calc(104px + var(--safe-b)) var(--gut-l);max-width:760px;margin:0 auto}
+/* skip layout / paint of cards below the fold until scrolled near */
+main .card,main .list{content-visibility:auto;contain-intrinsic-size:auto 160px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
 .hero{background:linear-gradient(140deg,#2a1d10,#161618 60%);border-color:#3a2a18}
 .big{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1}
@@ -306,7 +308,8 @@ function uid(){
 }
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = v => (v === '' || v == null || isNaN(Number(v))) ? 0 : Number(v);
-const rm = n => 'RM ' + Math.round(Number(n) || 0).toLocaleString('en-MY');
+const RMF = new Intl.NumberFormat('en-MY', {maximumFractionDigits:0});
+const rm = n => 'RM ' + RMF.format(Math.round(Number(n) || 0));
 const safeUrl = u => /^https?:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
 
 /* Dates are plain 'yyyy-mm-dd' strings in *local* time. Never go through
@@ -1093,7 +1096,8 @@ V.budget = () => {
    (all homes), never in the shared Sheet: your partner links their own Ledger on their phone. */
 const LEDGER_LINK = 'nest.ledgerLink', LEDGER_CACHE = 'nest.ledgerCache';
 let LG = readJSON(LEDGER_CACHE), lgBusy = false, lgErr = '';
-const lgLink = () => readJSON(LEDGER_LINK) || {};
+let LGL = readJSON(LEDGER_LINK) || {};
+const lgLink = () => LGL;
 const lgOn = () => !!(lgLink().url && LG && LG.accs);
 /* Ledger balance: opening amount (minus for cards / loans) plus every transaction; a transfer moves money from acc to `to`. */
 function lgTrim(d){
@@ -1453,8 +1457,8 @@ document.addEventListener('click', e => {
     case 'lgSave': {
       const url = $('lgUrl').value.trim(), key = $('lgKey').value.trim();
       if (!okUrl(url) || !key){ toast('Enter the Ledger Web App URL and VIEW_KEY', {error:true}); break; }
-      writeJSON(LEDGER_LINK, {url, key}); lgFetch(true); render(); break; }
-    case 'lgUnlink': if (confirm('Unlink Ledger from this phone?')){ try { localStorage.removeItem(LEDGER_LINK); localStorage.removeItem(LEDGER_CACHE); } catch(e){} LG = null; lgErr = ''; render(); } break;
+      LGL = {url, key}; writeJSON(LEDGER_LINK, LGL); lgFetch(true); render(); break; }
+    case 'lgUnlink': if (confirm('Unlink Ledger from this phone?')){ try { localStorage.removeItem(LEDGER_LINK); localStorage.removeItem(LEDGER_CACHE); } catch(e){} LGL = {}; LG = null; lgErr = ''; render(); } break;
     case 'addExp': editExp(); break;
     case 'editExp': editExp(id); break;
     case 'editBudget': editBudget(); break;

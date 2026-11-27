@@ -1,6 +1,6 @@
 /* Nest service worker: lets the app shell open with no signal.
    Data lives in localStorage; Google Sheets requests are never cached. */
-const CACHE = 'nest-shell-v8';
+const CACHE = 'nest-shell-v9';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon.svg'];
 
 self.addEventListener('install', e => {
