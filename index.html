@@ -163,6 +163,92 @@ nav button em{position:absolute;top:2px;left:calc(50% + 8px);min-width:16px;heig
 .acts{display:flex;gap:10px;margin-top:6px}
 .acts .btn{flex:1}
 .hint{font-size:12px;color:var(--mut);margin:-4px 2px 12px}
+/* ---------- charts (dark palette, validated vs card surface #161618) ---------- */
+:root{--s1:#338ced;--s2:#e76624;--s3:#00a888;--s4:#d28e05;--s5:#e24d8b;--s6:#0aac23;
+  --o1:#1757ac;--o2:#2370cd;--o3:#519ced;--o4:#9dc8f7;--de:#3a3a40;--de2:#6b6b73;--grid:#242428;--axis:#3a3a40}
+.ch{margin-top:6px}
+.ch-h{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.ch-h .b{font-size:14px}
+.ch-h .sm{margin-left:auto}
+.ch-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);margin-top:10px}
+.ch-leg span{display:inline-flex;align-items:center;gap:6px}
+.ch-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.ch-leg i.ln{width:14px;height:2px;border-radius:2px}
+/* columns */
+.cc{display:grid;grid-template-columns:auto 1fr;column-gap:8px}
+.cc-y{position:relative;height:140px;font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+.cc-y span{position:absolute;right:0;transform:translateY(50%);white-space:nowrap}
+.cc-p{position:relative;height:140px;border-bottom:1px solid var(--axis)}
+.cc-g{position:absolute;left:0;right:0;height:1px;background:var(--grid)}
+.cc-ref{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--de2);z-index:1;pointer-events:none}
+.cc-ref span{position:absolute;left:4px;bottom:2px;font-size:10.5px;color:var(--mut);background:var(--card);padding:0 4px;border-radius:4px}
+.cc-cols{position:absolute;inset:0;display:flex;gap:2px}
+.cc-c{flex:1;position:relative;background:none;border:0;padding:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;border-radius:6px}
+.cc-c:hover,.cc-c:focus-visible{background:rgba(255,255,255,.04);outline:none}
+.cc-c i{display:block;width:min(24px,62%);border-radius:4px 4px 0 0;min-height:2px;transition:filter .15s,height .28s cubic-bezier(.32,.72,0,1)}
+.cc-c:hover i,.cc-c:focus-visible i{filter:brightness(1.2)}
+.cc-c b{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;white-space:nowrap;font-weight:600}
+.cc-x{grid-column:2;display:flex;gap:2px;font-size:10.5px;color:var(--mut);padding-top:5px}
+.cc-x span{flex:1;text-align:center;white-space:nowrap}
+.cc-x .on{color:var(--tx);font-weight:600}
+/* line */
+.lc{display:grid;grid-template-columns:auto 1fr;column-gap:8px}
+.lc-p{position:relative;height:150px;border-bottom:1px solid var(--axis);touch-action:pan-y;cursor:crosshair;outline:none}
+.lc-p:focus-visible{box-shadow:0 0 0 2px var(--s1);border-radius:4px}
+.lc-p svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.lc-p path{vector-effect:non-scaling-stroke}
+.lc-x{grid-column:2;position:relative;height:18px;font-size:10.5px;color:var(--mut)}
+.lc-x span{position:absolute;top:5px;transform:translateX(-50%);white-space:nowrap}
+.lc-x span:first-child{transform:none} .lc-x span:last-child{transform:translateX(-100%)}
+.dot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,50%);box-shadow:0 0 0 2px var(--card);pointer-events:none}
+.lc-end{position:absolute;transform:translate(-100%,50%);font-size:11px;font-weight:600;white-space:nowrap;padding-right:10px;pointer-events:none}
+.xh{position:absolute;top:0;bottom:0;width:1px;background:var(--de2);display:none;pointer-events:none}
+.lc-p.hov .xh{display:block}
+.lc-p .hd{display:none} .lc-p.hov .hd{display:block}
+/* tall segmented bar */
+.sb{display:flex;gap:2px;height:28px}
+.sb>button{border:0;padding:0 0 0 8px;min-width:3px;border-radius:4px;cursor:pointer;color:#fff;font-size:11.5px;font-weight:600;text-align:left;white-space:nowrap;overflow:visible;transition:filter .15s}
+.sb>button.dk{color:#0b0b0b}
+.sb>button:hover,.sb>button:focus-visible{filter:brightness(1.18);outline:none}
+.sb>button.dim{opacity:.35}
+/* ranked bars / meter list */
+.rb{display:flex;flex-direction:column;gap:2px}
+.rb>button{background:none;border:0;padding:7px 6px;margin:0 -6px;border-radius:8px;cursor:pointer;text-align:left;color:inherit}
+.rb>button:hover,.rb>button:focus-visible{background:rgba(255,255,255,.04);outline:none}
+.rb .row{font-size:13.5px}
+.rb .tr{height:8px;margin-top:6px;display:flex;gap:2px}
+.rb .tr i{display:block;height:100%;border-radius:0}
+.rb .tr i:last-child{border-radius:0 4px 4px 0}
+/* heat calendar */
+.hm{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;width:100%}
+.hm i{aspect-ratio:1;border-radius:3px;background:var(--card2);display:block;cursor:default;outline:none}
+.hm i:hover,.hm i:focus-visible{box-shadow:0 0 0 1.5px var(--tx)}
+.hm-sc{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--mut)}
+.hm-sc i{width:10px;height:10px;border-radius:2px;display:inline-block}
+/* sparkline */
+.spk{position:relative;height:34px;margin-top:10px}
+.spk svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.spk path{vector-effect:non-scaling-stroke}
+/* table view */
+details.tv{margin-top:10px}
+details.tv summary{font-size:12px;color:var(--mut);cursor:pointer;list-style:none;display:inline-block;padding:2px 0}
+details.tv summary::-webkit-details-marker{display:none}
+details.tv summary::before{content:'▸ '} details.tv[open] summary::before{content:'▾ '}
+details.tv table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;font-variant-numeric:tabular-nums}
+details.tv td,details.tv th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:right}
+details.tv td:first-child,details.tv th:first-child{text-align:left}
+details.tv th{color:var(--mut);font-weight:500}
+/* tooltip */
+#ctip{position:fixed;z-index:40;pointer-events:none;background:#232327;border:1px solid #34343a;border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;transition:opacity .12s;max-width:240px}
+#ctip.on{opacity:1}
+#ctip .tt{color:var(--mut);margin-bottom:4px}
+#ctip .tr{display:flex;align-items:center;gap:8px;white-space:nowrap}
+#ctip .tr+.tr{margin-top:3px}
+#ctip .tr i{width:12px;height:2px;border-radius:2px;flex:none}
+#ctip .tr b{font-weight:600;font-variant-numeric:tabular-nums}
+#ctip .tr span{color:var(--mut)}
+@media (prefers-reduced-motion:reduce){.cc-c i{transition:none}}
+
 .toast{position:fixed;left:50%;bottom:calc(146px + var(--safe-b));transform:translate(-50%,8px);max-width:calc(100% - 32px);width:max-content;display:flex;align-items:center;gap:12px;background:#26262a;border:1px solid var(--line);padding:10px 14px;border-radius:12px;z-index:30;font-size:13.5px;opacity:0;transition:.2s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast.err{background:#2d1515;border-color:#5a2424}
@@ -527,6 +613,144 @@ function dueBadge(t){
 const monthly = b => b.freq==='monthly' ? b.amount : b.freq==='quarterly' ? b.amount/3 : b.amount/12;
 const isEmpty = () => !S.rooms.length && !S.items.length && !S.tasks.length && !S.bills.length;
 
+/* ---------- charts ----------
+   Small interactive chart kit: plain HTML + SVG so it scales with the card.
+   Every mark carries data-tr (tooltip rows) and is focusable; every chart has a Table twin. */
+const rmK = n => { n = Math.round(n || 0); const a = Math.abs(n); return a >= 1e6 ? (n/1e6).toFixed(a >= 1e7 ? 0 : 1).replace(/\.0$/,'') + 'M' : a >= 1e4 ? Math.round(n/1e3) + 'K' : a >= 1e3 ? (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K' : String(n); };
+function niceMax(v){ if (v <= 0) return 100; const e = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m * e >= v) return m * e; return 10 * e; }
+const tipAttr = (title, rows) => `data-tt="${esc(title)}" data-tr="${esc(JSON.stringify(rows))}"`;
+const tvTable = (head, rows) => `<details class="tv"><summary>Table</summary><table><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></details>`;
+const pctOf = (v, t) => t ? Math.round(v / t * 100) + '%' : '0%';
+const LC = {}; let lcN = 0;
+
+/* Column chart: one value per month, optional budget line, tap a column to open that month. */
+function colChart({cols, ref, refLabel, act, sel, label}){
+  const max = niceMax(Math.max(ref || 0, ...cols.map(c => c.v)) * 1.08), ticks = [0, max / 2, max];
+  return `<div class="cc" role="group" aria-label="${esc(label)}">
+    <div class="cc-y" aria-hidden="true">${ticks.map(t => `<span style="bottom:${t / max * 100}%">${rmK(t)}</span>`).join('')}</div>
+    <div class="cc-p">${ticks.slice(1).map(t => `<div class="cc-g" style="bottom:${t / max * 100}%"></div>`).join('')}
+      ${ref ? `<div class="cc-ref" style="bottom:${ref / max * 100}%"><span>${esc(refLabel)}</span></div>` : ''}
+      <div class="cc-cols">${cols.map(c => { const h = c.v / max * 100, on = c.k === sel;
+        return `<button class="cc-c" data-act="${act}" data-m="${esc(c.k)}" aria-label="${esc(c.l + ': ' + rm(c.v))}" ${tipAttr(c.l, [[rm(c.v), 'Spent', 'var(--s1)'], ...(ref ? [[rm(ref), 'Budget', 'var(--de2)']] : [])])}>
+          <i style="height:${h}%;background:${on ? 'var(--s1)' : 'var(--de)'}"></i>${on && c.v ? `<b style="bottom:calc(${h}% + 4px)">${rmK(c.v)}</b>` : ''}</button>`; }).join('')}</div>
+    </div>
+    <div class="cc-x" aria-hidden="true">${cols.map(c => `<span class="${c.k === sel ? 'on' : ''}">${esc(c.s)}</span>`).join('')}</div>
+  </div>`;
+}
+/* Line chart with crosshair: series [{name, color, vals:[number|null], area, end}] over x labels. */
+function lineChart({xs, xl, series, label, fmt = rm}){
+  const id = 'lc' + (++lcN), n = xs.length;
+  const all = series.flatMap(s => s.vals.filter(v => v != null)), max = niceMax(Math.max(1, ...all) * 1.08);
+  const X = i => n > 1 ? i / (n - 1) * 100 : 50, Y = v => 100 - v / max * 100;
+  LC[id] = {xs, series, max, fmt};
+  const path = s => { let d = '', on = false; s.vals.forEach((v, i) => { if (v == null){ on = false; return; } d += (on ? 'L' : 'M') + X(i).toFixed(2) + ' ' + Y(v).toFixed(2); on = true; }); return d; };
+  const lastI = s => { for (let i = n - 1; i >= 0; i--) if (s.vals[i] != null) return i; return -1; };
+  const ticks = [0, max / 2, max];
+  return `<div class="lc">
+    <div class="cc-y" style="height:150px" aria-hidden="true">${ticks.map(t => `<span style="bottom:${t / max * 100}%">${rmK(t)}</span>`).join('')}</div>
+    <div class="lc-p" data-lc="${id}" tabindex="0" role="img" aria-label="${esc(label)}. Use arrow keys to read values.">
+      ${ticks.slice(1).map(t => `<div class="cc-g" style="bottom:${t / max * 100}%"></div>`).join('')}
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        ${series.filter(s => s.area).map(s => { const li = lastI(s); return li < 0 ? '' : `<path d="${path(s)} L${X(li).toFixed(2)} 100 L0 100 Z" fill="${s.color}" fill-opacity=".1" stroke="none"/>`; }).join('')}
+        ${series.map(s => `<path d="${path(s)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+      </svg>
+      ${series.filter(s => s.end).map(s => { const li = lastI(s); return li < 0 ? '' : `<span class="dot" style="left:${X(li)}%;bottom:${100 - Y(s.vals[li])}%;background:${s.color}"></span><span class="lc-end" style="left:${X(li)}%;bottom:calc(${100 - Y(s.vals[li])}% + 10px)">${fmt(s.vals[li])}</span>`; }).join('')}
+      <div class="xh"></div>${series.map(s => `<span class="dot hd" style="background:${s.color}"></span>`).join('')}
+    </div>
+    <div class="lc-x" aria-hidden="true">${xl.map(([i, t]) => `<span style="left:${X(i)}%">${esc(t)}</span>`).join('')}</div>
+  </div>`;
+}
+/* Tall segmented bar: one whole split into ≤6 parts; share printed where it fits. */
+function segBar(parts, {act, total, label} = {}){
+  const t = total || parts.reduce((a, p) => a + p.v, 0) || 1;
+  const vis = parts.filter(p => p.v > 0);
+  return `<div class="sb" role="group" aria-label="${esc(label || '')}">${vis.map(p => { const sh = p.v / t * 100;
+    return `<button class="${p.dark ? 'dk' : ''}" style="flex:${p.v} 1 0;background:${p.c}" ${act ? `data-act="${act}" data-k="${esc(p.k)}"` : 'tabindex="0"'} aria-label="${esc(p.l + ': ' + rm(p.v) + ', ' + Math.round(sh) + '%')}" ${tipAttr(p.l, [[rm(p.v), Math.round(sh) + '% of ' + rm(t) + (p.n != null ? ' · ' + p.n + ' item' + (p.n === 1 ? '' : 's') : ''), p.c]])}>${sh >= 13 ? Math.round(sh) + '%' : ''}</button>`; }).join('')}</div>
+    <div class="ch-leg">${vis.map(p => `<span><i style="background:${p.c}"></i>${esc(p.l)}</span>`).join('')}</div>`;
+}
+/* Sparkline: last n values, the latest point marked. */
+function sparkline(vals){
+  const n = vals.length, max = Math.max(1, ...vals), X = i => i / (n - 1) * 100, Y = v => 100 - v / max * 92;
+  const d = vals.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(2) + ' ' + Y(v).toFixed(2)).join(' ');
+  return `<div class="spk" aria-hidden="true"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="var(--de2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+    <span class="dot" style="left:100%;bottom:${100 - Y(vals[n - 1])}%;background:var(--s1);width:8px;height:8px"></span></div>`;
+}
+const lastMonths = (m, k) => { const out = []; const d = parseD(m + '-01'); d.setMonth(d.getMonth() - k + 1); for (let i = 0; i < k; i++){ out.push(iso(d).slice(0, 7)); d.setMonth(d.getMonth() + 1); } return out; };
+const monShort = m => parseD(m + '-01').toLocaleDateString('en-MY', {month:'short'});
+
+/* Budget tab: spending pace (cumulative) vs even pace, and the last 6 months. */
+function paceChart(m, tot){
+  const n = lastDay(m), isNow = m === ym(today()), upto = isNow ? Number(today().slice(8)) : n;
+  if (m > ym(today())) return '';
+  const day = Array(n + 1).fill(0);
+  S.exps.filter(x => ym(x.date) === m).forEach(x => { day[Math.min(n, +x.date.slice(8))] += x.amount; });
+  S.pays.filter(x => x.month === m).forEach(x => { const d = ym(x.date) === m ? +x.date.slice(8) : 1; day[Math.min(n, d)] += x.amount; });
+  let c = 0; const cum = [];
+  for (let d = 1; d <= n; d++){ c += day[d]; cum.push(d <= upto ? c : null); }
+  if (!c) return '';
+  const xs = cum.map((_, i) => `${i + 1} ${monShort(m)}`);
+  const series = [{name:'Spent so far', color:'var(--s1)', vals:cum, area:true, end:true}];
+  if (tot) series.push({name:'Even pace to budget', color:'var(--de2)', vals:cum.map((_, i) => Math.round(tot * (i + 1) / n))});
+  const pace = tot ? tot * upto / n : 0;
+  const note = tot ? (c > pace ? `${rm(c - pace)} ahead of pace` : `${rm(pace - c)} under pace`) : '';
+  return `<div class="card ch"><div class="ch-h"><div class="b">Spending pace</div><div class="sm mut">${esc(note)}</div></div>
+    ${lineChart({xs, xl:[[0, '1'], [Math.floor(n / 2), String(Math.floor(n / 2) + 1)], [n - 1, String(n)]], series, label:'Spending pace in ' + monthName(m)})}
+    <div class="ch-leg">${series.map(s => `<span><i class="ln" style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>
+    ${tvTable(['Day', 'Spent so far', ...(tot ? ['Even pace'] : [])], cum.map((v, i) => v == null ? null : [String(i + 1), rm(v), ...(tot ? [rm(tot * (i + 1) / n)] : [])]).filter(Boolean))}</div>`;
+}
+function monthsChart(m, tot){
+  const ms = lastMonths(m, 6), cols = ms.map(k => ({k, v:sum(spentIn(k)), l:monthName(k), s:monShort(k)}));
+  if (!cols.some(c => c.v)) return '';
+  const avg = cols.filter(c => c.v).reduce((a, c) => a + c.v, 0) / cols.filter(c => c.v).length;
+  return `<div class="card ch"><div class="ch-h"><div class="b">Last 6 months</div><div class="sm mut">avg ${rm(avg)} · tap a month</div></div>
+    ${colChart({cols, ref:tot, refLabel:'Budget ' + rmK(tot), act:'bMonth', sel:m, label:'House spending, last 6 months'})}
+    ${tvTable(['Month', 'Spent', ...(tot ? ['Budget'] : [])], cols.map(c => [c.l, rm(c.v), ...(tot ? [rm(tot)] : [])]))}</div>`;
+}
+/* Upkeep: monthly home cost split into parts. Colors follow the part, never its rank. */
+const COST_PARTS = [{k:'housing', c:'var(--s1)'}, {k:'utilities', l:'Utilities', c:'var(--s2)'}, {k:'internet', l:'Internet & TV', c:'var(--s3)'}, {k:'insurance', l:'Insurance & tax', c:'var(--s4)'}, {k:'repairs', l:'Maintenance', c:'var(--s5)'}];
+function costParts(housing){
+  const by = {housing}; S.bills.forEach(b => { const k = billCat(b.name); by[k] = (by[k] || 0) + monthly(b); });
+  return COST_PARTS.map(p => ({...p, l:p.k === 'housing' ? (renting() ? 'Rent' : 'Loan') : p.l, v:Math.round(by[p.k] || 0)}));
+}
+/* Rooms: setup cost per room, bought part solid. */
+function roomsChart(){
+  const rows = S.rooms.map(r => { const t = totals(S.items.filter(i => i.roomId === r.id)); return {r, t}; }).filter(x => x.t.total).sort((a, b) => b.t.total - a.t.total);
+  const whole = totals(S.items.filter(i => !i.roomId));
+  if (whole.total) rows.push({r:{id:'', name:'Whole house', icon:'🏠'}, t:whole});
+  if (!rows.length) return '';
+  const max = rows[0].t.total, all = totals();
+  return `<div class="card ch"><div class="ch-h"><div class="b">Setup cost by room</div><div class="sm mut">${rm(all.total)}</div></div>
+    <div class="rb">${rows.map(({r, t}) => `<button ${r.id ? `data-act="room" data-id="${esc(r.id)}"` : ''} aria-label="${esc(r.name + ': ' + rm(t.total) + ', bought ' + rm(t.spent))}" ${tipAttr(r.icon + ' ' + r.name, [[rm(t.spent), 'Bought', 'var(--s1)'], [rm(t.committed), 'Ordered', 'var(--o2)'], [rm(t.planned), 'Still to buy', 'var(--de)']])}>
+      <div class="row"><span class="sp">${esc(r.icon)} ${esc(r.name)}</span><b>${rm(t.total)}</b></div>
+      <div class="tr" style="width:${Math.max(2, t.total / max * 100)}%">${[[t.spent, 'var(--s1)'], [t.committed, 'var(--o1)'], [t.planned, 'var(--de)']].filter(x => x[0] > 0).map(([v, c]) => `<i style="flex:${v} 1 0;background:${c}"></i>`).join('')}</div></button>`).join('')}</div>
+    <div class="ch-leg"><span><i style="background:var(--s1)"></i>Bought</span><span><i style="background:var(--o1)"></i>Ordered</span><span><i style="background:var(--de)"></i>Still to buy</span></div>
+    ${tvTable(['Room', 'Bought', 'Ordered', 'To buy', 'Total'], rows.map(({r, t}) => [r.name, rm(t.spent), rm(t.committed), rm(t.planned), rm(t.total)]))}</div>`;
+}
+/* Shopping: where the money sits in the pipeline, tap a stage to filter. */
+const STAGE_C = {idea:'var(--o1)', shortlist:'var(--o2)', ordered:'var(--o3)', delivered:'var(--o4)'};
+function stageChart(){
+  const parts = STATUSES.map(st => { const its = S.items.filter(i => i.status === st.k); return {k:st.k, l:st.l, v:its.reduce((a, i) => a + cost(i), 0), n:its.length, c:STAGE_C[st.k], dark:st.k === 'delivered'}; });
+  const tot = parts.reduce((a, p) => a + p.v, 0); if (!tot) return '';
+  const done = parts[3].v;
+  return `<div class="card ch"><div class="ch-h"><div class="b">Shopping pipeline</div><div class="sm mut">${pctOf(done, tot)} delivered · tap to filter</div></div>
+    ${segBar(parts, {act:'fs', total:tot, label:'Shopping value by status'})}
+    ${tvTable(['Status', 'Items', 'Value', 'Share'], parts.map(p => [p.l, String(p.n), rm(p.v), pctOf(p.v, tot)]))}</div>`;
+}
+/* Activity: changes per day for the last 12 weeks. */
+function heatCal(){
+  const end = parseD(today()), start = new Date(end); start.setDate(end.getDate() - 83);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); // weeks start Monday
+  const cnt = {}; S.log.forEach(e => { const k = iso(new Date(e.at)); cnt[k] = (cnt[k] || 0) + 1; });
+  const cells = []; for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) cells.push(iso(d));
+  const max = Math.max(1, ...cells.map(k => cnt[k] || 0));
+  const step = v => !v ? 'var(--card2)' : ['#0f4a96', '#1b64be', '#338ced', '#84b9f3'][Math.min(3, Math.floor((v - 1) / max * 4))];
+  const tot = cells.reduce((a, k) => a + (cnt[k] || 0), 0); if (!tot) return '';
+  return `<div class="card ch"><div class="ch-h"><div class="b">Last 12 weeks</div><div class="sm mut">${tot} change${tot === 1 ? '' : 's'}</div></div>
+    <div class="hm" role="img" aria-label="Changes per day for the last 12 weeks">${cells.map(k => `<i tabindex="-1" style="background:${step(cnt[k] || 0)}" ${tipAttr(fmtDate(k), [[String(cnt[k] || 0), (cnt[k] === 1 ? 'change' : 'changes'), step(cnt[k] || 0)]])}></i>`).join('')}</div>
+    <div class="row" style="margin-top:8px"><span class="sm mut sp">Mon–Sun, oldest week on the left</span><span class="hm-sc">Less <i style="background:var(--card2)"></i><i style="background:#0f4a96"></i><i style="background:#1b64be"></i><i style="background:#338ced"></i><i style="background:#84b9f3"></i> More</span></div>
+    ${tvTable(['Day', 'Changes'], cells.filter(k => cnt[k]).reverse().map(k => [fmtDate(k), String(cnt[k])]))}</div>`;
+}
+
 /* ---------- views ---------- */
 const V = {};
 
@@ -565,7 +789,7 @@ V.home = () => {
 
   <div class="card">
     <div class="row"><div class="b">Setup budget</div><div class="sp"></div><div class="sm ${over>0?'':'mut'}" style="${over>0?'color:var(--bad)':''}">${s.budget ? (over>0 ? rm(over)+' over' : rm(-over)+' headroom') : '<a href="#" data-act="go" data-v="settings">Set a budget</a>'}</div></div>
-    <div class="bar"><i style="width:${pct(t.spent)}%;background:var(--ok)"></i><i style="width:${pct(t.committed)}%;background:var(--warn)"></i><i style="width:${pct(t.planned)}%;background:#4a4a52"></i></div>
+    <div class="bar" style="gap:2px;height:12px">${[[t.spent,'var(--ok)','Bought'],[t.committed,'var(--warn)','Ordered'],[t.planned,'#4a4a52','Planned']].filter(x=>x[0]>0).map(([v,c,l])=>`<i tabindex="0" style="width:${pct(v)}%;background:${c};cursor:pointer" ${tipAttr('Setup budget',[[rm(v),l + (s.budget ? ' · ' + pctOf(v, s.budget) + ' of budget' : ''),c]])}></i>`).join('')}</div>
     <div class="legend"><span><b style="background:var(--ok)"></b>Bought ${rm(t.spent)}</span><span><b style="background:var(--warn)"></b>Ordered ${rm(t.committed)}</span><span><b style="background:#4a4a52"></b>Planned ${rm(t.planned)}</span><span>Budget ${rm(s.budget)}</span></div>
   </div>
 
@@ -590,6 +814,7 @@ V.home = () => {
 };
 
 V.rooms = () => `
+  ${roomsChart()}
   <div class="rooms">
     ${S.rooms.map(r=>{
       const its = S.items.filter(i=>i.roomId===r.id), done = its.filter(i=>i.status==='delivered').length;
@@ -628,6 +853,7 @@ V.items = () => {
   const t = totals(its);
   const chip = (k,l,cur,act) => `<button class="chip ${cur===k?'on':''}" data-act="${act}" data-k="${k}">${esc(l)}</button>`;
   return `
+  ${stageChart()}
   <div class="chips">${chip('all','All statuses',fStatus,'fs')}${STATUSES.map(s=>chip(s.k,s.l,fStatus,'fs')).join('')}</div>
   <div class="chips">${chip('all','All priorities',fPrio,'fp')}${PRIORITIES.map(p=>chip(p.k,p.l.split(':')[0],fPrio,'fp')).join('')}</div>
   <div class="sm mut" style="margin:0 4px 10px">${its.length} item${its.length===1?'':'s'} · ${rm(t.total)} · tap a status pill to move it forward</div>
@@ -814,6 +1040,7 @@ V.activity = () => {
   const list = actList(LOG_MAX), ppl = people();
   return `<div class="settings">
   ${ppl.length ? `<div class="people">${ppl.map(p=>`<span>${av(p,true)}${esc(who(p))}</span>`).join('')}</div>` : ''}
+  ${heatCal()}
   ${list.length ? `<div class="list">${list.map(actRow).join('')}</div>` : '<div class="card empty">Nothing yet. Changes you and your partner make show up here.</div>'}
   <div class="sm mut" style="margin:8px 4px">Keeps the latest ${LOG_MAX} changes.</div></div>`;
 };
@@ -985,6 +1212,7 @@ function costCard(){
     <div class="row"><div class="sp"><div class="mut sm">Monthly home cost</div><div class="b" style="font-size:20px">${rm(total)} / month</div></div><div class="mut sm" style="text-align:right">${rm(total*12)}<br>per year</div></div>
     <div style="margin-top:10px"><div class="kv"><span class="mut">${label}</span><span>${housing ? rm(housing) : `<a href="#" data-act="${renting() ? 'editRent' : 'openSettings'}">Add</a>`}</span></div>
     <div class="kv"><span class="mut">Bills</span><span>${rm(billsM)}</span></div></div>
+    ${total ? `<div style="margin:14px 0 6px">${segBar(costParts(housing), {total, label:'Monthly home cost by part'})}</div>${tvTable(['Part', 'Per month', 'Share'], costParts(housing).filter(p => p.v).map(p => [p.l, rm(p.v), pctOf(p.v, total)]))}` : ''}
     ${body}</div>`;
 }
 
@@ -1049,7 +1277,7 @@ function budgetCard(){
   return `<div class="card" data-act="go" data-v="budget" style="cursor:pointer">
     <div class="row"><div class="b">House budget · ${monthName(m)}</div><div class="sp"></div><div class="sm ${left < 0 ? '' : 'mut'}" style="${left < 0 ? 'color:var(--bad)' : ''}">${tot ? (left < 0 ? rm(-left) + ' over' : rm(left) + ' left') : 'No budget set'}</div></div>
     <div class="meter"><i style="width:${pct}%;background:${left < 0 ? 'var(--bad)' : pct > 85 ? 'var(--warn)' : 'var(--ok)'}"></i></div>
-    <div class="sm mut">Spent ${rm(sp)}${tot ? ' of ' + rm(tot) : ''}</div></div>`;
+    <div class="sm mut">Spent ${rm(sp)}${tot ? ' of ' + rm(tot) : ''} · last 6 months below</div>${sparkline(lastMonths(m, 6).map(k => sum(spentIn(k))))}</div>`;
 }
 
 V.budget = () => {
@@ -1076,12 +1304,14 @@ V.budget = () => {
     ${!tot ? `<div class="tip">💡 Tap <b>Set a budget</b>: Nest fills in a suggestion from your rent or loan, bills and income.</div>` : ''}
     ${tot && S.settings.income ? `<div class="tip">${tot <= S.settings.income * 0.4 ? '✅' : '⚠️'} Budget is <b>${Math.round(tot / S.settings.income * 100)}%</b> of household income (guide: 40% or less).</div>` : ''}
   </div>
+  ${paceChart(m, tot)}
   <h2>By category</h2>
   ${cats.length ? `<div class="card">${cats.map(c => { const v = by[c.k] || 0, mx = b[c.k] || 0; return `<div style="margin:4px 0 10px">
       <div class="row"><span class="sp">${c.i} ${esc(c.l)}</span><span class="sm"><b>${rm(v)}</b>${mx ? ' <span class="mut">/ ' + rm(mx) + '</span>' : ''}</span></div>${bar(v, mx)}
       ${mx && v > mx ? `<div class="sm" style="color:var(--bad)">${rm(v - mx)} over</div>` : ''}</div>`; }).join('')}</div>`
     : '<div class="card empty">Set a budget or add an expense to see categories.</div>'}
   </div><div>
+  ${monthsChart(m, tot)}
   <h2>Expenses<span class="sp"></span><button data-act="addExp">＋ Add</button></h2>
   ${list.length || rents.length ? `<div class="list">
     ${rents.map(x => `<div class="li" data-act="editPay" data-id="${esc(x.id)}"><div class="ic">🔑</div><div class="main"><div class="t">Rent</div><div class="sm mut t">${fmtDate(x.date)}${x.paid && shared() ? ' · ' + esc(who(x.paid)) : ''}</div></div><div class="b">${rm(x.amount)}</div></div>`).join('')}
@@ -1230,7 +1460,7 @@ function rememberName(){
 const TITLES = {budget:'House budget',activity:'Activity',home:'Nest',rooms:'Rooms',items:'Shopping list',upkeep:'Upkeep',settings:'Settings'};
 let renderPending = false;
 function render(){
-  renderPending = false;
+  renderPending = false; for (const k in LC) delete LC[k]; hideTip();
   $('main').innerHTML = (V[view]||V.home)();
   $('title').textContent = view==='room' ? roomName(curRoom) : (view==='home' ? (S.settings.household && S.settings.household!=='Our home' ? S.settings.household : 'Nest') : TITLES[view]);
   $('back').hidden = view!=='room' && view!=='settings' && view!=='activity';
@@ -1394,6 +1624,58 @@ function editBill(id, preset = {}){
     onSave: o => { if (b){ stamp(Object.assign(b,o)); logAct('edited bill '+b.name); } else { S.bills.push(fresh(o)); logAct('added bill '+o.name); } },
     onDelete: b ? () => { removeRec('bills', id); logAct('deleted bill '+b.name); } : null });
 }
+
+/* ---------- chart hover / touch / keyboard ---------- */
+const ctip = document.createElement('div'); ctip.id = 'ctip'; ctip.setAttribute('aria-hidden', 'true'); document.body.appendChild(ctip);
+let tipTimer = 0;
+function drawTip(title, rows, x, y){
+  ctip.textContent = '';
+  if (title){ const t = document.createElement('div'); t.className = 'tt'; t.textContent = title; ctip.appendChild(t); }
+  rows.forEach(([v, l, c]) => { const r = document.createElement('div'); r.className = 'tr'; const i = document.createElement('i'); i.style.background = c || 'var(--mut)'; const b = document.createElement('b'); b.textContent = v; const sp = document.createElement('span'); sp.textContent = l; r.append(i, b, sp); ctip.appendChild(r); });
+  ctip.classList.add('on');
+  const w = ctip.offsetWidth, h = ctip.offsetHeight, vw = innerWidth;
+  let left = x - w / 2, top = y - h - 14;
+  left = Math.max(8, Math.min(vw - w - 8, left)); if (top < 8) top = y + 18;
+  ctip.style.left = left + 'px'; ctip.style.top = top + 'px';
+}
+const hideTip = () => { ctip.classList.remove('on'); document.querySelectorAll('.lc-p.hov').forEach(p => p.classList.remove('hov')); };
+function markTip(el, x, y){ try { drawTip(el.dataset.tt, JSON.parse(el.dataset.tr), x, y); } catch(e){} }
+function lcAt(p, i){
+  const L = LC[p.dataset.lc]; if (!L) return;
+  const n = L.xs.length; i = Math.max(0, Math.min(n - 1, i)); p.dataset.i = i;
+  const X = n > 1 ? i / (n - 1) * 100 : 50;
+  p.classList.add('hov'); p.querySelector('.xh').style.left = X + '%';
+  const dots = p.querySelectorAll('.dot.hd'), rows = [];
+  L.series.forEach((s, k) => { const v = s.vals[i]; const d = dots[k]; if (v == null){ d.style.display = 'none'; return; } d.style.display = ''; d.style.left = X + '%'; d.style.bottom = (v / L.max * 100) + '%'; rows.push([L.fmt(v), s.name, s.color]); });
+  const r = p.getBoundingClientRect(); drawTip(L.xs[i], rows, r.left + r.width * X / 100, r.top + 10);
+}
+const lcIdx = (p, cx) => { const r = p.getBoundingClientRect(), n = LC[p.dataset.lc].xs.length; return Math.round((cx - r.left) / r.width * (n - 1)); };
+document.addEventListener('pointermove', e => {
+  const p = e.target.closest && e.target.closest('.lc-p'); if (p){ lcAt(p, lcIdx(p, e.clientX)); return; }
+  document.querySelectorAll('.lc-p.hov').forEach(x => x.classList.remove('hov'));
+  const m = e.target.closest && e.target.closest('[data-tr]');
+  if (m && e.pointerType !== 'touch') markTip(m, e.clientX, e.clientY);
+  else if (e.pointerType !== 'touch') hideTip();
+}, {passive:true});
+document.addEventListener('pointerdown', e => {
+  clearTimeout(tipTimer);
+  const p = e.target.closest('.lc-p'), m = e.target.closest('[data-tr]');
+  if (p) lcAt(p, lcIdx(p, e.clientX)); else if (m) markTip(m, e.clientX, e.clientY); else hideTip();
+  if (e.pointerType === 'touch' && (p || m)) tipTimer = setTimeout(hideTip, 2500);
+}, {passive:true});
+document.addEventListener('pointerleave', hideTip);
+addEventListener('scroll', () => { if (ctip.classList.contains('on')) hideTip(); }, {passive:true});
+document.addEventListener('focusin', e => {
+  const p = e.target.closest('.lc-p'); if (p){ lcAt(p, +(p.dataset.i || LC[p.dataset.lc].xs.length - 1)); return; }
+  const m = e.target.closest('[data-tr]'); if (m && m.matches(':focus-visible')){ const r = m.getBoundingClientRect(); markTip(m, r.left + r.width / 2, r.top); }
+});
+document.addEventListener('focusout', e => { if (e.target.closest && e.target.closest('[data-tr],.lc-p')) hideTip(); });
+document.addEventListener('keydown', e => {
+  const p = e.target.closest && e.target.closest('.lc-p'); if (!p) return;
+  const i = +(p.dataset.i || 0), n = LC[p.dataset.lc].xs.length;
+  const j = e.key === 'ArrowLeft' ? i - 1 : e.key === 'ArrowRight' ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+  if (j != null){ e.preventDefault(); lcAt(p, j); }
+});
 
 /* ---------- events ---------- */
 function go(v){ view = v; render(); window.scrollTo(0,0); }
